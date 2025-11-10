@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova guia</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-overlay">
+        <div class="boxed">
+            <script src="Sortable.min.js"></script>
+
+            <div class="container">
+                <div class="links">
+                    <div class="grid-container">
+                        <!-- Grid cells will be created by JavaScript -->
+                    </div>
+                    <button id="add-link-btn" class="fab fab-absolute">+</button>
+                    <div class="autor-container">
+                        <a href="" class="autor"></a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="add-link-overlay" class="overlay">
+                <div class="overlay-content">
+                    <h2>Add New Website</h2>
+                    
+                    <form id="add-link-form">
+                        <div class="form-group">
+                            <label for="site-name">Website Name:</label>
+                            <input type="text" id="site-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="site-url">Link (URL):</label>
+                            <input type="text" id="site-url" placeholder="https://exemplo.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="custom-icon">Custom Icon:</label>
+                            <input type="file" 
+                                id="custom-icon" 
+                                accept=".ico,.png,.jpg,.jpeg,.gif,image/x-icon,image/png,image/jpeg,image/gif"
+                                class="file-input">
+                            <small class="file-hint">Accepted formats: ICO, PNG, JPG, GIF (máx 1MB)</small>
+                        </div>
+
+                        <button type="submit" class="btn-submit">Add</button>
+                    </form>
+
+                    <button id="close-overlay-btn" class="btn-close">&times;</button>
+                </div>
+            </div>
+
+            <div id="context-menu" class="context-menu">
+                <button id="edit-btn" class="context-menu-btn">
+                    ✏️ Editar
+                </button>
+                <button id="remove-btn" class="context-menu-btn remove">
+                    🗑️ Remover
+                </button>
+            </div>
+
+            <script src="homepage.js"></script>
+        </div>
+    </div>  
+</body>
+</html>

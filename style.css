@@ -1,0 +1,492 @@
+/* Reset básico */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: Outfit, Arial, sans-serif;
+}
+
+.autor-container {
+    display: flex;
+    font-size: 14px;
+    position: fixed;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
+    bottom: 30px;
+    left: 40px;
+    border-radius: 12px;
+    height: fit-content;
+    z-index: 1000;
+    background: #3333332c;
+    backdrop-filter: blur(6px);
+}
+
+.autor {
+    font-size: 14px;
+    font-weight: 400;
+    color: rgb(189, 189, 189);
+    text-decoration: underline;
+}
+
+body {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: #202020;
+}
+
+.boxed {
+    width: 100%;
+    max-width: 1900px;
+}
+
+.background-overlay {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    position: fixed;
+    height: 100%;
+    background-color: rgba(34, 34, 34, 0.301); /* Overlay semi-transparente */
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    row-gap: 40px;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 70%;
+}
+
+h1 {
+    font-weight: 600;
+    color: #fff;
+    margin-top: 0;
+}
+
+code {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.links {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    width: fit-content;
+}
+
+.fab {
+    width: 56px;
+    height: 56px;
+    background: #3333336c;
+    backdrop-filter: blur(6px);
+    border: solid 1px #6e6e6e6c;
+    color: white;
+    margin-left: 10px;
+    font-size: 32px;
+    line-height: 55px; /* Alinha o "+" verticalmente */
+    text-align: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.fab:hover {
+    background-color: #64636338;
+}
+
+
+/* --- Estilos do Overlay --- */
+.overlay {
+    display: none; /* Escondido por padrão */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Fundo escuro */
+    
+    /* Centraliza o conteúdo do overlay */
+    justify-content: center;
+    align-items: center;
+    
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 100;
+}
+
+.overlay-content {
+    background: rgba(30, 30, 30, 0.9); /* Fundo do modal */
+    padding: 2.5rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 90%;
+    max-width: 400px;
+    position: relative; /* Para o botão de fechar */
+}
+
+.overlay-content h2 {
+    margin-top: 0;
+    color: #fff;
+}
+
+/* --- Estilos do Formulário --- */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    text-align: left;
+    color: #ccc;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background: #222;
+    color: #fff;
+    box-sizing: border-box; /* Garante que o padding não quebre o layout */
+    font-size: 16px;
+}
+
+input[type="file"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007aff;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-submit:hover {
+    background-color: #005ec4;
+}
+
+/* --- Botão de Fechar (X) --- */
+.btn-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    color: #aaa;
+    background: none;
+    border: none;
+    cursor: pointer;
+    line-height: 1;
+}
+.btn-close:hover {
+    color: #fff;
+}
+
+.context-menu {
+    display: none; /* Escondido por padrão */
+    position: absolute;
+    z-index: 1000;
+    width: 150px;
+    background: #2b2b2e; /* Cor escura */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 6px;
+    color: #ffffff;      /* GARANTE TEXTO BRANCO */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.context-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Espaço entre ícone e texto */
+    font-size: 14px;
+    color: #f0f0f0;
+    background: none;
+    border: none;
+    color: #f0f0f0;
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.context-menu-btn svg {
+    stroke: currentColor;
+}
+
+.context-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.context-menu-btn.remove {
+    color: #ff453a; /* Vermelho para "Remover" */
+}
+
+.context-menu-btn.remove:hover {
+    background: rgba(255, 69, 58, 0.2);
+}
+
+.context-menu {
+    display: none;
+    position: absolute;
+    z-index: 9999; /* Z-index bem alto para garantir que fique por cima de tudo */
+    width: 150px;
+    background-color: #2b2b2e; /* Cor de fundo sólida */
+    border: 1px solid #555;
+    border-radius: 8px;
+    padding: 8px 0; /* Espaçamento vertical */
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+.context-menu-btn {
+    display: block;      /* Garante que ocupe a linha toda */
+    width: 100%;
+    text-align: left;
+    padding: 10px 16px;  /* Espaçamento interno generoso */
+    font-size: 14px;
+    color: #ffffff;      /* Texto branco */
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.context-menu-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Efeito de hover */
+}
+
+.context-menu-btn.remove {
+    color: #ff6b6b; /* Vermelho claro para o remover */
+}
+
+.context-menu-btn.remove:hover {
+    background-color: rgba(255, 107, 107, 0.15);
+}
+
+.link-ghost {
+    opacity: 0.4;
+    background: #4a4a4e;
+}
+
+/* Onde o item vai cair */
+.link-chosen {
+    border: 1px dashed #007aff;
+}
+
+/* Impede que o link seja "clicado" acidentalmente ao arrastar */
+.links-rapidos a.sortable-dragging {
+    pointer-events: none;
+}
+
+.file-input {
+    padding: 12px;
+    border: 1px solid #555;
+    border-radius: 6px;
+    background: #222;
+    color: #fff;
+    width: 100%;
+    margin-bottom: 4px;
+    cursor: pointer;
+}
+
+.file-input::-webkit-file-upload-button {
+    background: #333;
+    border: 1px solid #555;
+    border-radius: 4px;
+    color: #fff;
+    padding: 8px 12px;
+    margin-right: 12px;
+    cursor: pointer;
+}
+
+.file-input::-webkit-file-upload-button:hover {
+    background: #444;
+}
+
+.file-hint {
+    display: block;
+    color: #888;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Error state */
+.file-input.error {
+    border-color: #ff453a;
+}
+
+.error-message {
+    color: #ff453a;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.favorites-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background-color: #2b2b2b;
+  border-bottom: 1px solid #3c3c3c;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.favorites-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.favorite-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: #ddd;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  user-select: none;
+  min-width: fit-content;
+}
+
+.favorite-link:hover {
+  background-color: #3a3a3a;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.favorite-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background-color: #444;
+  object-fit: cover;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* Changed to 7 columns */
+    gap: 10px;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+a {
+    flex-direction: column;
+    gap: 10px;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.grid-row {
+    display: flex;
+    gap: 10px;
+}
+
+.grid-cell {
+    box-sizing: border-box;             /* evita alterações de tamanho ao mudar borda */
+    border: 1px solid transparent;       /* borda transparente por padrão (previne jump layout) */
+    display: flex;
+    gap: 10px;
+    aspect-ratio: 1;
+    background: transparent; /* Invisible by default */
+    opacity: 0;
+    justify-content: center;
+    align-items: center;
+    min-height: 110px;
+    transition: opacity 0.25s ease;
+}
+
+/* quando tem conteúdo */
+.grid-cell:not(:empty) {
+    background: rgba(102, 102, 102, 0.42);
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    border-color: #6e6e6e6c;
+    opacity: 1;
+    background: #3333336c;
+    backdrop-filter: blur(6px);
+}
+
+.link-icon {
+    width: 48px;
+    height: 48px;
+}
+
+/* indica targets válidos sem "empurrar" layout */
+.grid-cell.valid-target {
+    outline: 2px dashed rgba(92, 92, 92, 0.424);
+    border-color: transparent;
+    outline-offset: -2px;
+    border-radius: 12px;
+    background: #33333310;
+    backdrop-filter: blur(3px);
+    opacity: 1;
+}
+
+/* ghost do item arrastado — keep size and remove scaling */
+.link-ghost {
+    opacity: 0.5;
+    background: rgba(255, 255, 255, 0.06);
+    transform: none !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.fab-absolute {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 1000;
+}
+
+.quick-link {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.position-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.position-inputs input {
+    width: 80px;
+}
+
+.link-ghost {
+    opacity: 0.5;
+    background: rgba(255, 255, 255, 0.2);
+}

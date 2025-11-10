@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Custom Browser Homepage",
+  "version": "2.0",
+  "description": "Replaces the browser's homepage with a custom page",
+  
+  "chrome_url_overrides": {
+    "newtab": "homepage.html"
+  },
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; img-src 'self' data: https://favicons.seadfeng.workers.dev/"
+  },
+
+  "permissions": [
+    "storage"
+  ]
+}
