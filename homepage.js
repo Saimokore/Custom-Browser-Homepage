@@ -589,13 +589,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const circle2Right = (viewportWidth - buttonCenterX) - (rectCircle2.width / 2);
 
         // 4. Aplicar os estilos usando 'top' e 'left'
-        circle1.style.top = '';
-        circle1.style.left = '';
         circle1.style.bottom = `${circle1Bottom}px`;
         circle1.style.right = `${circle1Right}px`;
         
-        circle2.style.top = '';
-        circle2.style.left = '';
         circle2.style.bottom = `${circle2Bottom}px`;
         circle2.style.right = `${circle2Right}px`;
     }
@@ -619,11 +615,6 @@ document.addEventListener('DOMContentLoaded', () => {
             showTutorialHighlight();
         }
     });
-
-    //launchTutorial() {
-    //    showTutorialHighlight();
-    //    // ...show other tutorial popups...
-    //}
 
     // convert file to base64
     function convertToBase64(file) {
