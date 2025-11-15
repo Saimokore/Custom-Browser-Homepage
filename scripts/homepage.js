@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // UI helpers (were missing and caused runtime errors)
     function showOverlay() {
+        closeMenu();
         hideTutorialHighlight();
         if (!overlay) return;
         overlay.style.display = 'flex';
@@ -625,5 +626,26 @@ document.addEventListener('DOMContentLoaded', () => {
             reader.onerror = error => reject(error);
         });
     }
+
+    const openBtn = document.getElementById('open-settings-btn');
+    const closeBtn = document.getElementById('close-settings-btn');
+    const backdrop = document.getElementById('settings-backdrop');
+    const settingsMenu = document.getElementById('settings-menu');
+
+    const openMenu = () => {
+        hideOverlay();
+        backdrop.style.display = 'block';
+        settingsMenu.style.display = 'flex'; // Usar 'flex' pois definimos no CSS
+    };
+
+    const closeMenu = () => {
+        backdrop.style.display = 'none';
+        settingsMenu.style.display = 'none';
+    };
+
+    // Event Listeners
+    openBtn.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+    backdrop.addEventListener('click', closeMenu); // Fecha ao clicar fora
 
 });

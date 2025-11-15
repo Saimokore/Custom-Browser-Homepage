@@ -20,7 +20,7 @@
   },
 
   "background": {
-    "service_worker": "service-worker.js"
+    "service_worker": "scripts/service-worker.js"
   },
 
   "permissions": [

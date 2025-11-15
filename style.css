@@ -124,7 +124,7 @@ code {
 .overlay-content {
     background: rgba(30, 30, 30, 0.9); /* Fundo do modal */
     padding: 2.5rem;
-    border-radius: 12px;
+    border-radius: 18px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);
     width: 90%;
@@ -133,6 +133,7 @@ code {
 }
 
 .overlay-content h2 {
+    font-size: 24px;
     margin-top: 0;
     color: #fff;
 }
@@ -198,89 +199,9 @@ input[type="file"] {
     cursor: pointer;
     line-height: 1;
 }
+
 .btn-close:hover {
     color: #fff;
-}
-
-.context-menu {
-    display: none; /* Escondido por padrão */
-    position: absolute;
-    z-index: 1000;
-    width: 150px;
-    background: #2b2b2e; /* Cor escura */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 6px;
-    color: #ffffff;      /* GARANTE TEXTO BRANCO */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.context-menu-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Espaço entre ícone e texto */
-    font-size: 14px;
-    color: #f0f0f0;
-    background: none;
-    border: none;
-    color: #f0f0f0;
-    padding: 10px;
-    width: 100%;
-    text-align: left;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.context-menu-btn svg {
-    stroke: currentColor;
-}
-
-.context-menu-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.context-menu-btn.remove {
-    color: #ff453a; /* Vermelho para "Remover" */
-}
-
-.context-menu-btn.remove:hover {
-    background: rgba(255, 69, 58, 0.2);
-}
-
-.context-menu {
-    display: none;
-    position: absolute;
-    z-index: 9999; /* Z-index bem alto para garantir que fique por cima de tudo */
-    width: 150px;
-    background-color: #2b2b2e; /* Cor de fundo sólida */
-    border: 1px solid #555;
-    border-radius: 8px;
-    padding: 8px 0; /* Espaçamento vertical */
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-}
-
-.context-menu-btn {
-    display: block;      /* Garante que ocupe a linha toda */
-    width: 100%;
-    text-align: left;
-    padding: 10px 16px;  /* Espaçamento interno generoso */
-    font-size: 14px;
-    color: #ffffff;      /* Texto branco */
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.context-menu-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Efeito de hover */
-}
-
-.context-menu-btn.remove {
-    color: #ff6b6b; /* Vermelho claro para o remover */
-}
-
-.context-menu-btn.remove:hover {
-    background-color: rgba(255, 107, 107, 0.15);
 }
 
 .link-ghost {
@@ -536,4 +457,162 @@ a {
     bottom: 25px;
     right: 120px;
     z-index: 1030;
+}
+
+
+#context-menu {
+    display: none; /* Começa escondido */
+    position: absolute;
+    z-index: 1000;
+    width: 160px; /* Um pouco mais de espaço */
+    background: #2c2c2c6c;
+    backdrop-filter: blur(6px);
+    border: solid 1px #6161616c;
+    border-radius: 8px;
+    padding: 6px;
+    
+    /* Garantindo o layout flexível */
+    display: flex;
+    flex-direction: column;
+    gap: 4px; 
+}
+
+#context-menu .context-menu-btn {
+    display: flex; /* Para alinhar ícone e texto */
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #f0f0f0; /* Texto claro */
+    background: none;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#context-menu .context-menu-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#context-menu .context-menu-btn.remove {
+    color: #ff736c;
+}
+
+#context-menu .context-menu-btn.remove:hover {
+    background: rgba(255, 69, 58, 0.2);
+}
+
+
+/* O fundo escurecido */
+.settings-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 99; /* Abaixo do menu, acima do resto */
+}
+
+#settings-menu {
+    display: none; /* Começa escondido */
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    width: 300px; /* Largura fixa */
+    background: rgba(30, 30, 30, 0.9); /* Fundo do menu */
+    padding: 2.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    /* Layout flexível */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#settings-menu .context-menu-btn {
+    display: flex; /* Para alinhar ícone e texto */
+    align-items: center;
+    gap: 10px;
+    background: rgba(66, 66, 66, 0.4);
+    border: solid 1px rgba(148, 148, 148, 0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 15px;
+    color: #fafafa; /* Texto escuro */
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s;
+}
+
+#settings-menu .context-menu-btn:hover {
+    background-color: rgba(99, 99, 99, 0.4);
+}
+
+#settings-menu .context-menu-btn.remove {
+    color: #ff6565; /* Vermelho para ações destrutivas */
+}
+
+#settings-menu .context-menu-btn.remove:hover {
+    background-color: #fbebee;
+}
+
+/* Título */
+#settings-menu h3 {
+    font-family: Outfit, sans-serif;
+    font-size: 24px;
+    margin: 0 0 12px 0;
+    text-align: left;
+    color: #fafafa;
+}
+
+/* Divisor */
+.menu-divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 4px 0;
+}
+
+/* Botão de fechar (X) */
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #aaa;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    color: #333;
+}
+
+.icons {
+    width: 24px;
+    height: 24px;
+}
+
+.open-settings {
+    padding-top: 2.5px;
+    padding-right: 8px;
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    z-index: 300;
+}
+
+.open-settings svg {
+    width: 28px;
+    height: 28px;
 }
