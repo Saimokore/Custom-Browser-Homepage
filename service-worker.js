@@ -40,6 +40,31 @@ function initialize() {
     }
   ];
 
+
+  // Migrar dados do local storage para o sync storage
+  chrome.storage.local.get(['links'], (result) => {
+    // Verifica se 'links' existe e tem conteúdo
+    if (result.links && result.links.length > 0) {
+        console.log('Dados encontrados no local. Migrando para sync...');
+        console.log(result);
+
+        // 1. Salva os dados no storage 'sync'
+        chrome.storage.sync.set({
+            links: result.links,
+            showTutorial: false // Assumindo que você sempre quer definir isso
+        }, () => {
+            console.log('Dados armazenados com sucesso no sync.');
+
+            // 2. APENAS APÓS salvar no sync, remove os dados do 'local'
+            chrome.storage.local.remove('links', () => {
+                console.log('Dados originais do local storage foram excluídos.');
+            });
+        });
+    } else {
+        console.log('Local storage está vazio ou "links" não foi encontrado. Nada a migrar.');
+    }
+  });
+
   chrome.storage.sync.get(['links'], (result) =>{
       // Check if the 'items' object has any keys
       if (!result.links || result.links.length === 0) {

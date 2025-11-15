@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // UI helpers (were missing and caused runtime errors)
     function showOverlay() {
+        hideTutorialHighlight();
         if (!overlay) return;
         overlay.style.display = 'flex';
         // focus input if present
@@ -604,6 +605,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const button = document.getElementById('add-link-btn');
         tutorialOverlay.style.display = 'none';
         button.style.boxShadow = '';
+
+        chrome.storage.sync.set({
+              showTutorial: false
+          }, () => {
+              console.log('Tutorial set to false.');
+          });
     }
 
     chrome.storage.sync.get(['showTutorial'], (result) => {

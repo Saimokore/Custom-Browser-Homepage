@@ -526,5 +526,14 @@ a {
 #circle2 {
   width: 600px;
   aspect-ratio: 1 / 1;
-  z-index: 2010;
+  z-index: 1020;
+}
+
+.tutorialh2 {
+    color: white;
+    position: fixed;
+    font-size: 24px;
+    bottom: 25px;
+    right: 120px;
+    z-index: 1030;
 }
