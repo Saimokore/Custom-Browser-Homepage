@@ -1,7 +1,7 @@
 // Espera o conteúdo da página carregar
 document.addEventListener('DOMContentLoaded', () => {
 
-    if (!chrome?.storage?.local) {
+    if (!chrome?.storage?.sync) {
         console.error('Chrome storage API not available');
         return;
     }
@@ -42,11 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         "https://unsplash.com/pt-br/fotografias/picos-de-montanhas-emergem-das-nuvens-no-crepusculo-kCF-KQD7ZAE"
                     ];
 
-    chrome.storage.local.get(['lastImageIndex'], (result) => {
+    chrome.storage.sync.get(['lastImageIndex'], (result) => {
         let ultimoIndice = result.lastImageIndex || 0;
         let proximoIndice = ultimoIndice + 1;
         if (proximoIndice > totalDeImagens) proximoIndice = 1;
-        chrome.storage.local.set({ lastImageIndex: proximoIndice });
+        chrome.storage.sync.set({ lastImageIndex: proximoIndice });
         
         let imagemEscolhida = `img/${proximoIndice}.jpg`;
         
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function loadLinks() {
         createGrid(); // Create grid first
 
-        chrome.storage.local.get(['links'], (result) => {
+        chrome.storage.sync.get(['links'], (result) => {
             const links = result.links || [];
             
             // Reset matrix
@@ -188,28 +188,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     rebuildMatrixFromDOM();
 
                     // salva alterações
-                    chrome.storage.local.set({ links: getLinksFromMatrix() });
+                    chrome.storage.sync.set({ links: getLinksFromMatrix() });
                 }
             });
         });
-    }
-
-    // Salva links
-    function saveLinks() {
-        const links = [];
-        gridMatrix.forEach((row, rowIndex) => {
-            row.forEach((cell, colIndex) => {
-                if (cell) {
-                    links.push({
-                        ...cell,
-                        row: rowIndex,
-                        col: colIndex
-                    });
-                }
-            });
-        });
-
-        chrome.storage.local.set({ links });
     }
 
     // Posiciona o botão na última row
@@ -269,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cell.innerHTML = '';
 
         // Salva e esconde menu
-        chrome.storage.local.set({ links: getLinksFromMatrix() }, () => {
+        chrome.storage.sync.set({ links: getLinksFromMatrix() }, () => {
             hideContextMenu();
         });
     }
@@ -311,6 +293,22 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         return links;
+    }
+
+    // Helper: converte matriz em array plano para storage
+    function addLinkToMatrix(id, name, url, customIcon, row, col) {
+        const newLinkObject = {
+            id: id,
+            name: name,
+            url: url,
+            customIcon: customIcon || null // Use null if customIcon is not provided
+        };
+
+        if (gridMatrix[row]) {
+            gridMatrix[row][col] = newLinkObject;
+        } else {
+            console.error(`Failed to add link: Row ${row} does not exist.`);
+        }
     }
 
     // UI helpers (were missing and caused runtime errors)
@@ -407,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     rebuildMatrixFromDOM();
 
                     // salva alterações
-                    chrome.storage.local.set({ links: getLinksFromMatrix() });
+                    chrome.storage.sync.set({ links: getLinksFromMatrix() });
                 }
             });
         });
@@ -456,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const file = fileInput?.files[0];
 
         if (!siteName || !siteUrl) {
-            alert('Por favor preencha todos os campos');
+            alert('Please fill all required fields.');
             return;
         }
         if (!siteUrl.startsWith('http')) siteUrl = 'https://' + siteUrl;
@@ -524,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // save and close
-        chrome.storage.local.set({ links: getLinksFromMatrix() }, () => {
+        chrome.storage.sync.set({ links: getLinksFromMatrix() }, () => {
             hideOverlay();
             form.reset();
         });
@@ -545,11 +543,80 @@ document.addEventListener('DOMContentLoaded', () => {
     // Validação de arquivo
     function validateFile(file) {
         const maxSize = 1024 * 1024;
-        if (file.size > maxSize) return 'O arquivo deve ter no máximo 1MB';
+        if (file.size > maxSize) return 'File must be less than 1MB';
         const validTypes = ['image/x-icon','image/png','image/jpeg','image/gif'];
-        if (!validTypes.includes(file.type)) return 'Formato inválido. Use ICO, PNG, JPG ou GIF';
+        if (!validTypes.includes(file.type)) return 'Invalid Format. Use SVG, ICO, PNG, WEBP, JPG or GIF';
         return null;
     }
+
+    function showTutorialHighlight() {
+        const tutorialOverlay = document.getElementById('tutorial');
+        const button = document.getElementById('add-link-btn');
+        const circle1 = document.getElementById('circle1');
+        const circle2 = document.getElementById('circle2');
+        
+        tutorialOverlay.style.display = 'block';
+
+        if (!button || !circle1 || !circle2) {
+            console.error('Tutorial elements not found!');
+            return;
+        }
+
+        button.style.boxShadow = '0 0 15px 5px rgba(92, 121, 250, 0.45)';
+
+        // 1. Obter posições e tamanhos
+        const rect = button.getBoundingClientRect();
+        const rectCircle1 = circle1.getBoundingClientRect();
+        const rectCircle2 = circle2.getBoundingClientRect();
+
+        // 2. Calcular o centro CORRETO do botão
+        const buttonCenterX = rect.left + (rect.width / 2);
+        const buttonCenterY = rect.top + (rect.height / 2);
+
+        // 3. Calcular a posição (top, left) para CADA círculo
+        //    para que seu centro se alinhe com o centro do botão.
+        // (Assumindo que os círculos usam 'position: fixed' ou 'absolute')
+
+        viewportWidth = window.innerWidth
+        viewportHeight = window.innerHeight
+
+        // Posição para o Círculo 1
+        const circle1Bottom = (viewportHeight - buttonCenterY) - (rectCircle1.height / 2);
+        const circle1Right = (viewportWidth - buttonCenterX) - (rectCircle1.width / 2);
+        // Posição para o Círculo 2
+        const circle2Bottom = (viewportHeight - buttonCenterY) - (rectCircle2.height / 2);
+        const circle2Right = (viewportWidth - buttonCenterX) - (rectCircle2.width / 2);
+
+        // 4. Aplicar os estilos usando 'top' e 'left'
+        circle1.style.top = '';
+        circle1.style.left = '';
+        circle1.style.bottom = `${circle1Bottom}px`;
+        circle1.style.right = `${circle1Right}px`;
+        
+        circle2.style.top = '';
+        circle2.style.left = '';
+        circle2.style.bottom = `${circle2Bottom}px`;
+        circle2.style.right = `${circle2Right}px`;
+    }
+
+    function hideTutorialHighlight() {
+        const tutorialOverlay = document.getElementById('tutorial');
+        const button = document.getElementById('add-link-btn');
+        tutorialOverlay.style.display = 'none';
+        button.style.boxShadow = '';
+    }
+
+    chrome.storage.sync.get(['showTutorial'], (result) => {
+        console.log('Tutorial flag:', result.showTutorial);
+        if (result.showTutorial) {
+            showTutorialHighlight();
+        }
+    });
+
+    //launchTutorial() {
+    //    showTutorialHighlight();
+    //    // ...show other tutorial popups...
+    //}
 
     // convert file to base64
     function convertToBase64(file) {

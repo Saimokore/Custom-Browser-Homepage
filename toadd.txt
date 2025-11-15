@@ -1,3 +1,5 @@
-- sincronização de browsers?
 - customização, opções, grid
 - custom backgrounds
+- ver se da pra atualizar pros usuarios automatico
+- colocar paginas padrao quando instalar a extensão e um mini tutorial de como adicionar páginas
+- export settings and links in json and upload
