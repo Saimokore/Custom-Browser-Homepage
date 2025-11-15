@@ -543,43 +543,75 @@ document.addEventListener('DOMContentLoaded', () => {
     // Validação de arquivo
     function validateFile(file) {
         const maxSize = 1024 * 1024;
-        if (file.size > maxSize) return 'O arquivo deve ter no máximo 1MB';
+        if (file.size > maxSize) return 'File must be less than 1MB';
         const validTypes = ['image/x-icon','image/png','image/jpeg','image/gif'];
-        if (!validTypes.includes(file.type)) return 'Formato inválido. Use ICO, PNG, JPG ou GIF';
+        if (!validTypes.includes(file.type)) return 'Invalid Format. Use SVG, ICO, PNG, WEBP, JPG or GIF';
         return null;
     }
 
     function showTutorialHighlight() {
+        const tutorialOverlay = document.getElementById('tutorial');
         const button = document.getElementById('add-link-btn');
-
         const circle1 = document.getElementById('circle1');
         const circle2 = document.getElementById('circle2');
+        
+        tutorialOverlay.style.display = 'block';
 
         if (!button || !circle1 || !circle2) {
             console.error('Tutorial elements not found!');
             return;
         }
 
-        // 3. Find the button's position on the screen
+        button.style.boxShadow = '0 0 15px 5px rgba(92, 121, 250, 0.45)';
+
+        // 1. Obter posições e tamanhos
         const rect = button.getBoundingClientRect();
+        const rectCircle1 = circle1.getBoundingClientRect();
+        const rectCircle2 = circle2.getBoundingClientRect();
 
-        // 4. Calculate the button's exact center
-        const centerX = rect.left + (rect.width / 2);
-        const centerY = rect.top + (rect.height / 2);
+        // 2. Calcular o centro CORRETO do botão
+        const buttonCenterX = rect.left + (rect.width / 2);
+        const buttonCenterY = rect.top + (rect.height / 2);
 
-        // 5. Position the circles on that center point
-        circle1.style.top = `${centerY}px`;
-        circle1.style.left = `${centerX}px`;
+        // 3. Calcular a posição (top, left) para CADA círculo
+        //    para que seu centro se alinhe com o centro do botão.
+        // (Assumindo que os círculos usam 'position: fixed' ou 'absolute')
+
+        viewportWidth = window.innerWidth
+        viewportHeight = window.innerHeight
+
+        // Posição para o Círculo 1
+        const circle1Bottom = (viewportHeight - buttonCenterY) - (rectCircle1.height / 2);
+        const circle1Right = (viewportWidth - buttonCenterX) - (rectCircle1.width / 2);
+        // Posição para o Círculo 2
+        const circle2Bottom = (viewportHeight - buttonCenterY) - (rectCircle2.height / 2);
+        const circle2Right = (viewportWidth - buttonCenterX) - (rectCircle2.width / 2);
+
+        // 4. Aplicar os estilos usando 'top' e 'left'
+        circle1.style.top = '';
+        circle1.style.left = '';
+        circle1.style.bottom = `${circle1Bottom}px`;
+        circle1.style.right = `${circle1Right}px`;
         
-        circle2.style.top = `${centerY}px`;
-        circle2.style.left = `${centerX}px`;
-        
-        // Make them visible
-        circle1.style.display = 'block';
-        circle2.style.display = 'block';
+        circle2.style.top = '';
+        circle2.style.left = '';
+        circle2.style.bottom = `${circle2Bottom}px`;
+        circle2.style.right = `${circle2Right}px`;
     }
 
-    showTutorialHighlight()
+    function hideTutorialHighlight() {
+        const tutorialOverlay = document.getElementById('tutorial');
+        const button = document.getElementById('add-link-btn');
+        tutorialOverlay.style.display = 'none';
+        button.style.boxShadow = '';
+    }
+
+    chrome.storage.sync.get(['showTutorial'], (result) => {
+        console.log('Tutorial flag:', result.showTutorial);
+        if (result.showTutorial) {
+            showTutorialHighlight();
+        }
+    });
 
     //launchTutorial() {
     //    showTutorialHighlight();

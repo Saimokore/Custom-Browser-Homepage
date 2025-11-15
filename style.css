@@ -492,6 +492,7 @@ a {
 }
 
 .tutorial-overlay {
+    display: none; /* Escondido por padrão */
     position: fixed;
     top: 0;
     left: 0;
@@ -505,13 +506,11 @@ a {
     
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    z-index: 100;
+    z-index: 10;
 }
 
 .circle-highlight {
   position: fixed;
-
-  transform: translate(50%, -50%);
 
   border-radius: 50%;
   pointer-events: none;
@@ -519,13 +518,13 @@ a {
 }
 
 #circle1 {
-  width: min(100%, 1200px);
+  width: 1200px;
   aspect-ratio: 1 / 1;
   z-index: 1010;
 }
 
 #circle2 {
-  width: min(40%, 600px);
+  width: 600px;
   aspect-ratio: 1 / 1;
   z-index: 2010;
 }
