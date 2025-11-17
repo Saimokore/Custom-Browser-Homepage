@@ -90,25 +90,44 @@
 
             <div id="settings-menu" class="context-menu overlay-content" style="display: none;">
                 
-                <button id="close-settings-btn" class="close-btn">&times;</button>
-                
-                <h3>Configuration</h3>
-                
-                <button id="change-bg-btn" class="context-menu-btn">
-                    🏞️ Change Background
-                </button>
-                <button id="export-links-btn" class="context-menu-btn">
-                    📤 Export Websites
-                </button>
-                <button id="import-links-btn" class="context-menu-btn">
-                    📥 Import Websites
-                </button>
-                
-                <hr class="menu-divider">
-                
-                <button id="reset-settings-btn" class="context-menu-btn remove">
-                    🔄 Reset Everything
-                </button>
+                <h2>Configuration</h2>
+
+                <div class="settings-container">
+                    <div class="settings-left settings-side">
+                        <button id="close-settings-btn" class="close-btn">&times;</button>
+                        
+                        <div class="settings-section" >
+                            <h3>Change Background Picture</h3>
+                            <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,.gif,image/x-icon,image/png,image/jpeg,image/gif" id="changeBGInput" class="hidden file-input"/>
+                            <button id="change-bg-btn" class="context-menu-btn">
+                                🏞️ Change Background
+                            </button>
+                            <small class="file-hint">Accepted formats: .png, .gif, .jpg, .jpeg, .webp</small>
+                        </div>
+                        
+                        
+                    </div>
+                    <div class="settings-right settings-side">
+                        <div class="settings-section" >
+                            <h3>Import/Export Website's Links</h3>
+                            <input value="Import" type="file" id="selectFiles" accept=".json" class="hidden file-input"/>
+                            <button id="import-links-btn" class="context-menu-btn">
+                                📥 Import Websites
+                            </button>
+                            
+                            <a id="downloadAnchorElem" style="display:none"></a>
+                            <button id="export-links-btn" class="context-menu-btn">
+                                📤 Export Websites
+                            </button>
+                        </div>
+                        
+                        <hr class="menu-divider">
+                        
+                        <button id="reset-settings-btn" class="context-menu-btn remove">
+                            🔄 Reset Everything
+                        </button>   
+                    </div>
+                </div>
             </div>
             <script src="scripts/homepage.js"></script>
         </div>

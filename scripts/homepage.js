@@ -41,23 +41,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         "https://unsplash.com/pt-br/fotografias/arco-rochoso-em-um-litoral-enevoado-com-ondas-do-mar-pvmCObXdIu8",
                         "https://unsplash.com/pt-br/fotografias/picos-de-montanhas-emergem-das-nuvens-no-crepusculo-kCF-KQD7ZAE"
                     ];
+    
 
-    chrome.storage.sync.get(['lastImageIndex'], (result) => {
-        let ultimoIndice = result.lastImageIndex || 0;
-        let proximoIndice = ultimoIndice + 1;
-        if (proximoIndice > totalDeImagens) proximoIndice = 1;
-        chrome.storage.sync.set({ lastImageIndex: proximoIndice });
-        
-        let imagemEscolhida = `img/${proximoIndice}.jpg`;
-        
-        // Get author using the index number (proximoIndice - 1 because array is 0-based)
-        const autorFoto = autoresFoto[proximoIndice - 1];
-        const linkFoto = linksFoto[proximoIndice - 1];
+    chrome.storage.sync.get(['background'], (result) =>{
+        if (result.background) {
+            console.log('Loading Customized Background.');
+            document.body.style.backgroundImage = `url('${result.background}')`;
+        } else {
+            console.log('Loading normal background images.');
+            chrome.storage.sync.get(['lastImageIndex'], (result) => {
+                let ultimoIndice = result.lastImageIndex || 0;
+                let proximoIndice = ultimoIndice + 1;
+                if (proximoIndice > totalDeImagens) proximoIndice = 1;
+                chrome.storage.sync.set({ lastImageIndex: proximoIndice });
+                
+                let imagemEscolhida = `img/${proximoIndice}.jpg`;
+                
+                // Get author using the index number (proximoIndice - 1 because array is 0-based)
+                const autorFoto = autoresFoto[proximoIndice - 1];
+                const linkFoto = linksFoto[proximoIndice - 1];
 
-        document.getElementsByClassName('autor')[0].innerText = `Photo by: ${autorFoto}`;
-        document.getElementsByClassName('autor')[0].href = `${linkFoto}`;
+                document.getElementsByClassName('autor')[0].innerText = `Photo by: ${autorFoto}`;
+                document.getElementsByClassName('autor')[0].href = `${linkFoto}`;
 
-        document.body.style.backgroundImage = `url('${imagemEscolhida}')`;
+                document.body.style.backgroundImage = `url('${imagemEscolhida}')`;
+            });
+        }
     });
 
     // ELEMENTOS
@@ -149,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
-
+            console.log(result.links);
             initSortable();
         });
     }
@@ -631,6 +640,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.getElementById('close-settings-btn');
     const backdrop = document.getElementById('settings-backdrop');
     const settingsMenu = document.getElementById('settings-menu');
+    const changeBgBtn = document.getElementById('change-bg-btn');
+    const exportLinksBtn = document.getElementById('export-links-btn');
+    const importLinksBtn = document.getElementById('import-links-btn');
+    const fileInput = document.getElementById('selectFiles');
+    const changeBGInput = document.getElementById('changeBGInput');
 
     const openMenu = () => {
         hideOverlay();
@@ -643,9 +657,74 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsMenu.style.display = 'none';
     };
 
+    const exportLinks = () => {
+        console.log('Exporting links...');
+        chrome.storage.sync.get(['links'], (result) => {
+            var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(result.links));
+            console.log('DataSTR: ', dataStr)
+            var dlAnchorElem = document.getElementById('downloadAnchorElem');
+            dlAnchorElem.setAttribute("href",     dataStr     );
+            dlAnchorElem.setAttribute("download", "websiteLinks.json");
+            dlAnchorElem.click();
+        });
+    };
+
+    const importLinks = () => {
+        fileInput.click();
+    };
+
+    const importLinksInput = () => {
+        files = fileInput.files;
+        console.log('Importing links...', files);
+        if (files.length === 0) {
+            return false;
+        }
+
+        const blob = new Blob([files], {type:"application/json"});
+
+        const fr = new FileReader();
+
+        fr.onload = () => {
+            try {
+                const linksJson = JSON.parse(fr.result);
+
+                chrome.storage.sync.set({ links: linksJson }, () => {
+                    console.log('Links imported successfully.');
+                    loadLinks();
+                    closeMenu();
+                });
+
+            } catch (err) {
+                console.error("Invalid JSON file:", err);
+            }
+        };
+
+        fr.readAsText(files[0]); // <- arquivo real
+    };
+
+    const changeBgButton = () => {
+        changeBGInput.click();
+    };
+
+    const changeBgInput = async () => {
+        imgBg = changeBgInput?.files[0];
+        if (imgBg) {
+            try { customImg = await convertToBase64(imgBg); } catch (err) { console.error(err); }
+            chrome.storage.sync.set({ background : imgBg })
+        } else {
+            return false;
+        }
+    }
+
     // Event Listeners
     openBtn.addEventListener('click', openMenu);
     closeBtn.addEventListener('click', closeMenu);
     backdrop.addEventListener('click', closeMenu); // Fecha ao clicar fora
+    exportLinksBtn.addEventListener('click', exportLinks);
+    changeBgBtn.addEventListener('click', changeBgBtn);
+    changeBGInput.addEventListener('change', changeBgInput)
+    importLinksBtn.addEventListener('click', importLinks);
+    fileInput.addEventListener('change', importLinksInput);
+
 
 });

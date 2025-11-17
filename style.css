@@ -72,6 +72,10 @@ code {
     border-radius: 4px;
 }
 
+.hidden {
+    display: none;
+}
+
 .links {
     display: flex;
     flex-direction: column;
@@ -139,13 +143,21 @@ code {
 }
 
 /* --- Estilos do Formulário --- */
+#add-link-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
 .form-group {
-    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .form-group label {
     display: block;
-    margin-bottom: 0.5rem;
+    font-size: 16px;
     text-align: left;
     color: #ccc;
     font-weight: 500;
@@ -167,7 +179,6 @@ input[type="file"] {
     border: 1px solid #ccc;
     border-radius: 4px;
     width: 100%;
-    margin-bottom: 10px;
 }
 
 .btn-submit {
@@ -225,8 +236,7 @@ input[type="file"] {
     border-radius: 6px;
     background: #222;
     color: #fff;
-    width: 100%;
-    margin-bottom: 4px;
+    max-width: 100%;
     cursor: pointer;
 }
 
@@ -240,6 +250,14 @@ input[type="file"] {
     cursor: pointer;
 }
 
+input[type="file"] {
+    padding: 8px;
+    border: 1px solid #686868;
+    border-radius: 8px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 .file-input::-webkit-file-upload-button:hover {
     background: #444;
 }
@@ -248,7 +266,6 @@ input[type="file"] {
     display: block;
     color: #888;
     font-size: 12px;
-    margin-top: 4px;
 }
 
 /* Error state */
@@ -524,7 +541,7 @@ a {
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
-    width: 300px; /* Largura fixa */
+    max-width: 900px; /* Largura fixa */
     background: rgba(30, 30, 30, 0.9); /* Fundo do menu */
     padding: 2.5rem;
     border-radius: 12px;
@@ -533,7 +550,34 @@ a {
     /* Layout flexível */
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 20px;
+}
+
+.settings-container {
+    display: flex;
+    flex-direction: row;
+    gap: 25px;
+}
+
+.settings-side {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 15px;
+}
+
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.settings-import {
+    flex-direction: row;
+}
+
+.settings-import button {
+    width: 80%;
 }
 
 #settings-menu .context-menu-btn {
@@ -564,12 +608,31 @@ a {
 }
 
 /* Título */
-#settings-menu h3 {
+#settings-menu h2 {
     font-family: Outfit, sans-serif;
     font-size: 24px;
-    margin: 0 0 12px 0;
     text-align: left;
     color: #fafafa;
+    margin-bottom: 0px;
+}
+
+#settings-menu h3 {
+    font-family: Outfit, sans-serif;
+    color: #ccc;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: left;
+    line-height: normal;
+}
+
+h3 {
+    font-family: Outfit, sans-serif;
+    color: #ccc;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: left;
+    line-height: normal;
+    margin: 5px 0 5px 0;
 }
 
 /* Divisor */
