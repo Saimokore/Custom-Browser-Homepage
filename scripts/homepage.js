@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    let backgroundArray;
+    chrome.storage.sync.get(['background'], (result) => {
+        backgroundArray = result.background;
+    });
+
     // background cycling
     const totalDeImagens = 25;
     let autoresFoto = ["Loic Lagarde", "Kohki Yamaguchi", "Kate Hook", "Justin Choquette", "Frauke Hamesiter", 
@@ -41,33 +46,69 @@ document.addEventListener('DOMContentLoaded', () => {
                         "https://unsplash.com/pt-br/fotografias/arco-rochoso-em-um-litoral-enevoado-com-ondas-do-mar-pvmCObXdIu8",
                         "https://unsplash.com/pt-br/fotografias/picos-de-montanhas-emergem-das-nuvens-no-crepusculo-kCF-KQD7ZAE"
                     ];
-    
 
-    chrome.storage.sync.get(['background'], (result) =>{
-        if (result.background) {
+    
+    loadBackground();
+
+    async function loadBackground() {
+        const { background } = await chrome.storage.local.get(['background']);
+
+        if (background) {
             console.log('Loading Customized Background.');
-            document.body.style.backgroundImage = `url('${result.background}')`;
-        } else {
-            console.log('Loading normal background images.');
+
+            const index = getImageIndex(backgroundArray.length);
+            const backImg = backgroundArray[index];
+
+            document.body.style.backgroundImage = `url('${backImg}')`;
+            setImageDisplay(backImg);
+            hideAutor();
+            return;
+        }
+
+        showAutor();
+        console.log('Loading normal background images.', background);
+
+        const index = getImageIndex(totalDeImagens);
+
+        const imagemEscolhida = `img/${index}.jpg`;
+        console.log('indice', index, 'imagemEscolhida', imagemEscolhida);
+
+        const autorFoto = autoresFoto[index - 1] ?? 'Unknown';
+        const linkFoto = linksFoto[index - 1] ?? '#';
+
+        const autorElem = document.getElementsByClassName('autor')[0];
+        autorElem.innerText = `Photo by: ${autorFoto}`;
+        autorElem.href = linkFoto;
+
+        document.body.style.backgroundImage = `url('${imagemEscolhida}')`;
+    }
+
+    function getImageIndex(imagesLength) {
+        return new Promise((resolve) => {
             chrome.storage.sync.get(['lastImageIndex'], (result) => {
                 let ultimoIndice = result.lastImageIndex || 0;
                 let proximoIndice = ultimoIndice + 1;
-                if (proximoIndice > totalDeImagens) proximoIndice = 1;
+
+                if (proximoIndice > imagesLength) proximoIndice = 1;
+
                 chrome.storage.sync.set({ lastImageIndex: proximoIndice });
-                
-                let imagemEscolhida = `img/${proximoIndice}.jpg`;
-                
-                // Get author using the index number (proximoIndice - 1 because array is 0-based)
-                const autorFoto = autoresFoto[proximoIndice - 1];
-                const linkFoto = linksFoto[proximoIndice - 1];
 
-                document.getElementsByClassName('autor')[0].innerText = `Photo by: ${autorFoto}`;
-                document.getElementsByClassName('autor')[0].href = `${linkFoto}`;
-
-                document.body.style.backgroundImage = `url('${imagemEscolhida}')`;
+                console.log('prox indice ', proximoIndice);
+                resolve(proximoIndice);
             });
-        }
-    });
+        });
+    }
+
+
+    function hideAutor() {
+        const autor = document.getElementById('autor');
+        autor.style.display = "none";
+    }
+    
+    function showAutor() {
+        const autor = document.getElementById('autor');
+        autor.style.display = "flex";
+    }
 
     // ELEMENTOS
     const closeOverlayBtn   =   document.getElementById('close-overlay-btn');
@@ -645,6 +686,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const importLinksBtn = document.getElementById('import-links-btn');
     const fileInput = document.getElementById('selectFiles');
     const changeBGInput = document.getElementById('changeBGInput');
+    const imgDisplay = document.getElementById('img-display');
+    const resetBgBtn = document.getElementById('reset-bg-settings-btn');
+    const closeNotificationBtn = document.getElementById('close-notification-btn');
 
     const openMenu = () => {
         hideOverlay();
@@ -707,13 +751,51 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const changeBgInput = async () => {
-        imgBg = changeBgInput?.files[0];
-        if (imgBg) {
-            try { customImg = await convertToBase64(imgBg); } catch (err) { console.error(err); }
-            chrome.storage.sync.set({ background : imgBg })
+        console.log('Changing BG Image')
+        imgBg = changeBGInput?.files;
+        console.log(imgBg);
+        if (imgBg.length > 0) {
+            for (let i; i < imgBg.length; i++) {
+                try { customImg = await convertToBase64(imgBg[i]); } catch (err) { console.error(err) }
+                backgroundArray.add(customImg)
+            }
+            console.log(backgroundArray)
+            chrome.storage.local.set({ background: backgroundArray }, () => {
+              showNotification("Success. Background picture changed successfully");
+              loadBackground()
+              setImageDisplay(customImg);
+              hideAutor();
+            });
         } else {
             return false;
         }
+    }
+
+    function setImageDisplay(image) {
+        imgDisplay.src = image;
+        imgDisplay.style.display = "block"
+    }
+
+    const resetBg = () => {
+        chrome.storage.local.set({background: ''}, () => {
+            console.log('Background Reset');
+            loadBackground();
+            showNotification("Success. Background reseted successfully");
+        });
+    }
+
+    function showNotification(message) {
+        console.log('Showing notification: ', message);
+        document.getElementById('notif-message').innerText = message;
+        document.getElementById('notification').style.opacity = "1";
+        setTimeout(() => {
+            closeNotification();
+        }, 3 * 1000);
+    }
+
+    function closeNotification() {
+        console.log("Closing notification");
+        document.getElementById('notification').style.opacity = "0";
     }
 
     // Event Listeners
@@ -721,10 +803,12 @@ document.addEventListener('DOMContentLoaded', () => {
     closeBtn.addEventListener('click', closeMenu);
     backdrop.addEventListener('click', closeMenu); // Fecha ao clicar fora
     exportLinksBtn.addEventListener('click', exportLinks);
-    changeBgBtn.addEventListener('click', changeBgBtn);
+    changeBgBtn.addEventListener('click', changeBgButton);
     changeBGInput.addEventListener('change', changeBgInput)
     importLinksBtn.addEventListener('click', importLinks);
     fileInput.addEventListener('change', importLinksInput);
+    resetBgBtn.addEventListener('click', resetBg);
+    closeNotificationBtn.addEventListener('click', closeNotification)
 
 
 });

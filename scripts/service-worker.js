@@ -74,6 +74,7 @@ function initialize() {
               showTutorial: true
           }, () => {
               console.log('Default links and tutorial flag initialized.');
+              chrome.storage.local.set({ background: ''})
           });
       } else {
           console.log('Sync storage is NOT empty.');

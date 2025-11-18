@@ -20,7 +20,7 @@
                         <!-- Grid cells will be created by JavaScript -->
                     </div>
                     <button id="add-link-btn" class="fab fab-absolute">+</button>
-                    <div class="autor-container">
+                    <div class="autor-container overlay-container" id="autor">
                         <a href="" class="autor"></a>
                     </div>
                 </div>
@@ -97,12 +97,15 @@
                         <button id="close-settings-btn" class="close-btn">&times;</button>
                         
                         <div class="settings-section" >
-                            <h3>Change Background Picture</h3>
+                            <h3>Change Background Pictures</h3>
                             <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,.gif,image/x-icon,image/png,image/jpeg,image/gif" id="changeBGInput" class="hidden file-input"/>
+                            <img src="" alt="" id="img-display" class="img-display-back">
                             <button id="change-bg-btn" class="context-menu-btn">
-                                🏞️ Change Background
+                                🏞️ Load a background or a background gallery.
                             </button>
-                            <small class="file-hint">Accepted formats: .png, .gif, .jpg, .jpeg, .webp</small>
+                            <small class="file-hint">
+                                Can be a gallery. Accepted formats: .png, .gif, .jpg, .jpeg, .webp
+                            </small>
                         </div>
                         
                         
@@ -123,11 +126,16 @@
                         
                         <hr class="menu-divider">
                         
-                        <button id="reset-settings-btn" class="context-menu-btn remove">
-                            🔄 Reset Everything
+                        <button id="reset-bg-settings-btn" class="context-menu-btn remove">
+                            🔄 Reset Background
                         </button>   
                     </div>
                 </div>
+            </div>
+
+            <div id="notification" class="overlay-container notification-content">
+                <span id="notif-message">Olá está é uma notificação!</span>
+                <button id="close-notification-btn" class="notification-btn close-btn">&times;</button>
             </div>
             <script src="scripts/homepage.js"></script>
         </div>

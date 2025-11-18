@@ -6,16 +6,12 @@ body, html {
     font-family: Outfit, Arial, sans-serif;
 }
 
-.autor-container {
+.overlay-container {
     display: flex;
-    font-size: 14px;
+    align-content: center;
+    justify-content: center;
     position: fixed;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    padding-right: 10px;
-    padding-left: 10px;
-    bottom: 30px;
-    left: 40px;
+    padding: 10px;
     border-radius: 12px;
     height: fit-content;
     z-index: 500;
@@ -23,11 +19,33 @@ body, html {
     backdrop-filter: blur(6px);
 }
 
+.autor-container {
+    bottom: 30px;
+    left: 40px;
+}
+
 .autor {
     font-size: 14px;
     font-weight: 400;
     color: rgb(189, 189, 189);
     text-decoration: underline;
+}
+
+.notification-content {
+    opacity: 0;
+    bottom: 30px;
+    padding: 15px 50px 15px 40px;
+    font-size: 18px;
+    font-weight: 400;
+    border-radius: 40px;
+    color: rgb(255, 255, 255);
+    border: 1px solid #e6e6e69f;
+    text-decoration: underline;
+    background-color: #20202049;
+    bottom: 10px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.125s ease-in-out;
 }
 
 body {
@@ -580,6 +598,14 @@ a {
     width: 80%;
 }
 
+.img-display-back {
+    display: none;
+    width: 90px;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    border: 1px solid #3b3b3b;
+}
+
 #settings-menu .context-menu-btn {
     display: flex; /* Para alinhar ícone e texto */
     align-items: center;
@@ -601,10 +627,6 @@ a {
 
 #settings-menu .context-menu-btn.remove {
     color: #ff6565; /* Vermelho para ações destrutivas */
-}
-
-#settings-menu .context-menu-btn.remove:hover {
-    background-color: #fbebee;
 }
 
 /* Título */
@@ -678,4 +700,11 @@ h3 {
 .open-settings svg {
     width: 28px;
     height: 28px;
+}
+
+
+.notification-btn {
+    top: 50%;
+    right: 15px;
+    transform: translate(0, -50%);
 }
