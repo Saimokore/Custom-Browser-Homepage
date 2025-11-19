@@ -1,8 +1,2 @@
 to do
-- customização, opções, grid
-- custom backgrounds
-- ver se da pra atualizar pros usuarios automatico
-- export settings and links in json and upload
-
-done
-- colocar paginas padrao quando instalar a extensão e um mini tutorial de como adicionar páginas
+- grid custom

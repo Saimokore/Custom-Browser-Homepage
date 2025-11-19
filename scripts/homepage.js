@@ -46,16 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBackground();
 
     async function loadBackground() {
-        const backgroundArray = await getBackgroundArray();
-        console.log('Background Array:', backgroundArray);
-        if (backgroundArray.length > 0) {
+        console.log(Date.now());
+        const idArray = await getIdArray();
+        console.log('idArray: ', idArray);
+        if (idArray.length > 0) {
             console.log('Loading Customized Background.');
 
-            const index = await getImageIndex(backgroundArray.length);
-            const backImg = backgroundArray[index - 1];
+            const index = await getImageIndex(idArray.length);
+            // const backImg = backgroundArray[index - 1];
+            const backImg = await getBackground(idArray[index]);
 
             document.body.style.backgroundImage = `url('${backImg}')`;
-            loadImageDisplay()
+            loadImageDisplay(idArray)
             hideAutor();
             return;
         }
@@ -77,6 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.body.style.backgroundImage = `url('${imagemEscolhida}')`;
     }
+
+    async function getBackground(id) {
+        return new Promise(resolve => {
+            chrome.storage.local.get([id], (result) => {
+                //const background = result.background || {};
+                console.log("bg ", `result.${id}`)
+                resolve(`result.${id}`);
+            });
+        });
+    }
+
 
     async function getImageIndex(imagesLength) {
         const { lastImageIndex = 0 } = await chrome.storage.sync.get('lastImageIndex');
@@ -743,63 +756,109 @@ document.addEventListener('DOMContentLoaded', () => {
         changeBGInput.click();
     };
 
-    function getBackgroundArray() {
+    function getIdArray() {
         return new Promise((resolve) => {
-            chrome.storage.local.get(['background'], (result) => {
-                const backgroundArray = result.background || [];
-                resolve(backgroundArray);
+            chrome.storage.local.get(['idArray'], (result) => {
+                const idArray = result.idArray || [];
+                console.log(Date.now());
+                resolve(idArray);
             });
         });
     }
 
+    // function getBackgroundArray() {
+    //     return new Promise((resolve) => {
+    //         chrome.storage.local.get(['background'], (result) => {
+    //             const backgroundArray = result.background || [];
+    //             console.log(Date.now());
+    //             resolve(backgroundArray);
+    //         });
+    //     });
+    // }
+
     const changeBgInput = async () => {
         console.log('Changing BG Image')
         let imgBg = changeBGInput?.files;
-        let backgroundArray = await getBackgroundArray();
-        console.log('BG Array', backgroundArray)
+        //let backgroundArray = await getBackgroundArray();
+        //console.log('BG Array', backgroundArray)
         if (imgBg.length > 0) {
             for (let i = 0; i < imgBg.length; i++) {
                 try { customImg = await convertToBase64(imgBg[i]); } catch (err) { console.error(err) }
-                backgroundArray.push(customImg);
+                // backgroundArray.push(customImg);
+                addBackground(customImg);
             }
-            await chrome.storage.local.set({ background: backgroundArray }, () => {
-                showNotification("Success. Background picture changed successfully");
-                loadBackground();
-                loadImageDisplay();
-                changeBGInput.value = '';
-            });
+            // await chrome.storage.local.set({ background: backgroundArray }, () => {
+            //     showNotification("Success. Background picture changed successfully");
+            //     loadBackground();
+            //     loadImageDisplay();
+            //     changeBGInput.value = '';
+            // });
         } else {
             return false;
         }
     }
 
-    function loadImageDisplay() {
-        const displayContainer = document.getElementById('img-display-container');
-        chrome.storage.local.get(['background'], (result) => {
-            displayContainer.innerHTML = '';
-            for (let i = 0; i < result.background.length; i++) {
-                const divElem = document.createElement('div');
-                divElem.style.position = 'relative';
-                divElem.className = 'div-display';
-
-                const aElem = document.createElement('button');
-                aElem.className = 'img-display-a';
-                aElem.href = "https://google.com";
-
-                const btnElem = document.createElement('img');
-                btnElem.className = 'img-display-btn';
-                btnElem.src = 'icons/svg/trash.svg';
-
-                const imgElem = document.createElement('img');
-                imgElem.src = result.background[i];
-                imgElem.className = 'img-display-back';
-
-                aElem.appendChild(imgElem);
-                aElem.appendChild(btnElem);
-                divElem.appendChild(aElem);
-                displayContainer.appendChild(divElem);
+    async function addBackground(base64) {
+        let id = "";
+        let idArrayB = [];
+        chrome.storage.local.get(['idArray'], (result) => {
+            if (result.idArray) {
+                console.log("It exists");
+                let idArrayB = result.idArray || [];
+                id = 'bg_' + (idArrayB.length);
+                idArrayB.push(id);
+                chrome.storage.local.set({ idArray: idArrayB })
+                console.log('New background: ', id)
+            } else {
+                console.log("doesnt")
+                result.idArray = idArrayB;
             }
         });
+
+        return new Promise(resolve => {
+            // chrome.storage.local.get(['background'], (result) => {
+            //     const background = result.background || {};
+
+            //     background[id] = base64;
+            //     console.log("Bg: ", result.background)
+            //     chrome.storage.local.set({ background }, () => {
+            //         resolve(id);
+            //     });
+            // });
+            chrome.storage.local.set({id})
+            resolve(id);
+        });
+    }
+
+
+    function loadImageDisplay(imageArray) {
+        console.log('imagearray ', imageArray)
+        const displayContainer = document.getElementById('img-display-container');
+        displayContainer.innerHTML = '';
+        
+        for (let i = 0; i < imageArray.length; i++) {
+            const divElem = document.createElement('div');
+            divElem.style.position = 'relative';
+            divElem.className = 'div-display';
+
+            const aElem = document.createElement('button');
+            aElem.className = 'img-display-a';
+            aElem.href = "https://google.com";
+
+            const btnElem = document.createElement('img');
+            btnElem.className = 'img-display-btn';
+            btnElem.src = 'icons/svg/trash.svg';
+
+            const imgElem = document.createElement('img');
+            imgElem.src = imageArray[i];
+            imgElem.className = 'img-display-back';
+
+            aElem.appendChild(imgElem);
+            aElem.appendChild(btnElem);
+            divElem.appendChild(aElem);
+            displayContainer.appendChild(divElem);
+        }        
+
         setTimeout(() => {
             document.querySelectorAll('.img-display-a')
                 .forEach(el => el.addEventListener('click', removeBack));
@@ -851,7 +910,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await chrome.storage.local.set({ background: backgroundArray });
 
         // atualiza UI
-        loadImageDisplay();
+        loadImageDisplay(backgroundArray);
         loadBackground();
     };
 
