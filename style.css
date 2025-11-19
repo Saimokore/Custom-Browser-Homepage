@@ -556,7 +556,7 @@ a {
 #settings-menu {
     display: none; /* Começa escondido */
     position: fixed;
-    top: 50%;
+    top: 40%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1000;
@@ -643,7 +643,7 @@ a {
 
 #settings-menu h3 {
     font-family: Outfit, sans-serif;
-    color: #ccc;
+    color: #fefefe;
     font-size: 18px;
     font-weight: 500;
     text-align: left;
@@ -663,7 +663,7 @@ h3 {
 /* Divisor */
 .menu-divider {
     border: none;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #3d3d3d;
     margin: 4px 0;
 }
 
@@ -754,4 +754,12 @@ h3 {
     flex-wrap: wrap;
     max-height: 250px;
     overflow-y: auto;
+}
+
+.settings-form {
+    width: 80px;   
+}
+
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
 }

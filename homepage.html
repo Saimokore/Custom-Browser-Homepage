@@ -101,13 +101,30 @@
                             <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,.gif,image/x-icon,image/png,image/jpeg,image/gif" id="changeBGInput" class="hidden file-input" multiple/>
                             <div id="img-display-container" class="settings-container"></div>
                             <button id="change-bg-btn" class="context-menu-btn">
-                                🏞️ Load a background or a background gallery.
+                                🏞️ Add a Background Image
                             </button>
                             <small class="file-hint">
                                 Can be multiple files. Accepted formats: .png, .gif, .jpg, .jpeg, .webp
                             </small>
                         </div>
-                        
+
+                        <div class="settings-section" >
+                            <h3>Grid Size</h3>
+                            <div style="display: flex; gap: 20px;">
+                                <div class="form-group settings-form">
+                                    <label for="row">Rows</label>
+                                    <input type="number" id="row" class=" "/>
+                                </div>
+                                <div class="form-group settings-form">
+                                    <label for="col">Columns</label>
+                                    <div style="display: flex;">
+                                        <button id="min-col"></button>
+                                        <input type="number" min="0" max="15" id="col" class=" "/>
+                                        <button id="max-col"></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         
                     </div>
                     <div class="settings-right settings-side">

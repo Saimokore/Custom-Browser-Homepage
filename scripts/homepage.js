@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const index = await getImageIndex(idArray.length);
             // const backImg = backgroundArray[index - 1];
-            const backImg = await getBackground(idArray[index]);
+            const backImg = await getBackground(idArray[index - 1]);
 
             document.body.style.backgroundImage = `url('${backImg}')`;
             loadImageDisplay(idArray)
@@ -81,11 +81,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function getBackground(id) {
+        console.log('Getting BG: ', id)
         return new Promise(resolve => {
             chrome.storage.local.get([id], (result) => {
-                //const background = result.background || {};
-                console.log("bg ", `result.${id}`)
-                resolve(`result.${id}`);
+                const valor = result[id]
+                //console.log("Result ID ", valor)
+                resolve(valor);
             });
         });
     }
@@ -209,54 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Inicializa Sortable
-    function initSortable() {
-        // destroy previous instances if you kept them (not shown here)
-        document.querySelectorAll('.grid-cell').forEach(cell => {
-            // ensure cell is a valid Sortable container
-            new Sortable(cell, {
-                animation: 150,
-                ghostClass: 'link-ghost',
-                group: {
-                    name: 'links',
-                    pull: true,
-                    put: function (to, from, dragged) {
-                        // allow put only if target cell currently empty OR target === source
-                        const toEl = to.el;
-                        // if dropping back into same cell allow (reorder)
-                        if (toEl === from.el) return true;
-                        // otherwise allow only if no quick-link inside
-                        return toEl.querySelectorAll('.quick-link').length === 0;
-                    }
-                },
-                onStart: function () {
-                    // marca apenas células vazias como alvo visual — usa classe que não altera layout
-                    document.querySelectorAll('.grid-cell').forEach(c => {
-                        if (c.querySelectorAll('.quick-link').length === 0) c.classList.add('valid-target');
-                    });
-                },
-                onEnd: function (evt) {
-                    // limpa indicadores
-                    document.querySelectorAll('.grid-cell.valid-target').forEach(c => c.classList.remove('valid-target'));
-
-                    // rebuild matrix from DOM para garantir consistência
-                    rebuildMatrixFromDOM();
-
-                    // salva alterações
-                    chrome.storage.sync.set({ links: getLinksFromMatrix() });
-                }
-            });
-        });
-    }
-
-    // Posiciona o botão na última row
-    function positionFabAtRowEnd() {
-        const lastRow = document.querySelector('.links-row:last-child .links-rapidos');
-        if (lastRow && addLinkBtn) {
-            lastRow.appendChild(addLinkBtn);
-        }
-    }
-
     // helper id generator
     function generateId() {
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -348,22 +301,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
         return links;
-    }
-
-    // Helper: converte matriz em array plano para storage
-    function addLinkToMatrix(id, name, url, customIcon, row, col) {
-        const newLinkObject = {
-            id: id,
-            name: name,
-            url: url,
-            customIcon: customIcon || null // Use null if customIcon is not provided
-        };
-
-        if (gridMatrix[row]) {
-            gridMatrix[row][col] = newLinkObject;
-        } else {
-            console.error(`Failed to add link: Row ${row} does not exist.`);
-        }
     }
 
     // UI helpers (were missing and caused runtime errors)
@@ -691,9 +628,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const importLinksBtn = document.getElementById('import-links-btn');
     const fileInput = document.getElementById('selectFiles');
     const changeBGInput = document.getElementById('changeBGInput');
-    const imgDisplay = document.getElementById('img-display');
     const resetBgBtn = document.getElementById('reset-bg-settings-btn');
     const closeNotificationBtn = document.getElementById('close-notification-btn');
+    const displayContainer = document.getElementById('img-display-container');
+    const btnColMaxGrid = document.getElementById('max-col');
+    const btnColMinGrid = document.getElementById('min-col');
+    const btnRowMaxGrid = document.getElementById('max-row');
+    const btnRowMinGrid = document.getElementById('min-row');
+    const inputColGrid = document.getElementById('col');
+    const inputRowGrid = document.getElementById('row');
 
     const openMenu = () => {
         hideOverlay();
@@ -766,111 +709,132 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // function getBackgroundArray() {
-    //     return new Promise((resolve) => {
-    //         chrome.storage.local.get(['background'], (result) => {
-    //             const backgroundArray = result.background || [];
-    //             console.log(Date.now());
-    //             resolve(backgroundArray);
-    //         });
-    //     });
-    // }
-
     const changeBgInput = async () => {
         console.log('Changing BG Image')
         let imgBg = changeBGInput?.files;
-        //let backgroundArray = await getBackgroundArray();
-        //console.log('BG Array', backgroundArray)
-        if (imgBg.length > 0) {
-            for (let i = 0; i < imgBg.length; i++) {
-                try { customImg = await convertToBase64(imgBg[i]); } catch (err) { console.error(err) }
-                // backgroundArray.push(customImg);
-                addBackground(customImg);
-            }
-            // await chrome.storage.local.set({ background: backgroundArray }, () => {
-            //     showNotification("Success. Background picture changed successfully");
-            //     loadBackground();
-            //     loadImageDisplay();
-            //     changeBGInput.value = '';
-            // });
-        } else {
-            return false;
+        if (!imgBg || imgBg.length === 0) return false;
+
+        for (let i = 0; i < imgBg.length; i++) {
+            const base64 = await convertToBase64(imgBg[i]);
+            await addBackground(base64);
         }
+
+        const idArray = await getIdArray();
+
+        showNotification("Success. Background picture changed successfully");
+        console.log('idar: ', idArray)
+
+        await loadBackground();
+
+        changeBGInput.value = '';
     }
 
     async function addBackground(base64) {
-        let id = "";
-        let idArrayB = [];
-        chrome.storage.local.get(['idArray'], (result) => {
-            if (result.idArray) {
-                console.log("It exists");
-                let idArrayB = result.idArray || [];
-                id = 'bg_' + (idArrayB.length);
-                idArrayB.push(id);
-                chrome.storage.local.set({ idArray: idArrayB })
-                console.log('New background: ', id)
-            } else {
-                console.log("doesnt")
-                result.idArray = idArrayB;
+        const result = await chrome.storage.local.get(['idArray']);
+        let idArrayB = result.idArray || [];
+
+        const id = 'bg_' + idArrayB.length;
+        idArrayB.push(id);
+
+        await chrome.storage.local.set({ idArray: idArrayB });
+        await chrome.storage.local.set({ [id]: base64 });
+
+        addDisplayImage(id);
+
+        console.log("New background:", id);
+        return id;
+    }
+
+    function initSortableDisplay() {
+        new Sortable(document.getElementById('img-display-container'), {
+            animation: 150,
+            ghostClass: 'ghost',
+            onEnd: function (evt) {
+                    // salva alterações
+                    console.log('getlinks ', getLinksFromDisplayArray());
+                    chrome.storage.local.set({ idArray: getLinksFromDisplayArray() });
+                }
+        });
+    }
+
+    function getLinksFromDisplayArray() {
+        const items = document.querySelectorAll('#img-display-container .div-display');
+        return Array.from(items).map(item => item.id);
+    }
+
+    function getLinksFromMatrix() {
+        const links = [];
+        gridMatrix.forEach((rowArr, r) => {
+            rowArr.forEach((cellObj, c) => {
+                if (cellObj) {
+                    links.push({
+                        id: cellObj.id,
+                        name: cellObj.name,
+                        url: cellObj.url,
+                        customIcon: cellObj.customIcon || null,
+                        row: r,
+                        col: c
+                    });
+                }
+            });
+        });
+        return links;
+    }
+
+    async function loadImageDisplay(idArray) {
+        console.log('LoadImageDisplay, idArray: ', idArray)
+        if (displayContainer.childElementCount == 0) {
+            for (let i = 0; i < idArray.length; i++) {
+                await addDisplayImage(idArray[i]);
             }
-        });
-
-        return new Promise(resolve => {
-            // chrome.storage.local.get(['background'], (result) => {
-            //     const background = result.background || {};
-
-            //     background[id] = base64;
-            //     console.log("Bg: ", result.background)
-            //     chrome.storage.local.set({ background }, () => {
-            //         resolve(id);
-            //     });
-            // });
-            chrome.storage.local.set({id})
-            resolve(id);
-        });
+            initSortableDisplay()
+        }
     }
 
-
-    function loadImageDisplay(imageArray) {
-        console.log('imagearray ', imageArray)
-        const displayContainer = document.getElementById('img-display-container');
-        displayContainer.innerHTML = '';
+    async function addDisplayImage(idArray) {
+        console.log('Adding Image: ', idArray)
+        const imgSrc = await getBackground(idArray);
         
-        for (let i = 0; i < imageArray.length; i++) {
-            const divElem = document.createElement('div');
-            divElem.style.position = 'relative';
-            divElem.className = 'div-display';
+        const divElem = document.createElement('div');
+        divElem.style.position = 'relative';
+        divElem.className = 'div-display';
+        divElem.id = idArray;
 
-            const aElem = document.createElement('button');
-            aElem.className = 'img-display-a';
-            aElem.href = "https://google.com";
+        const aElem = document.createElement('button');
+        aElem.className = 'img-display-a';
 
-            const btnElem = document.createElement('img');
-            btnElem.className = 'img-display-btn';
-            btnElem.src = 'icons/svg/trash.svg';
+        const btnElem = document.createElement('img');
+        btnElem.className = 'img-display-btn';
+        btnElem.src = 'icons/svg/trash.svg';
 
-            const imgElem = document.createElement('img');
-            imgElem.src = imageArray[i];
-            imgElem.className = 'img-display-back';
+        const imgElem = document.createElement('img');
+        imgElem.src = imgSrc;
+        imgElem.className = 'img-display-back';
 
-            aElem.appendChild(imgElem);
-            aElem.appendChild(btnElem);
-            divElem.appendChild(aElem);
-            displayContainer.appendChild(divElem);
-        }        
+        aElem.appendChild(imgElem);
+        aElem.appendChild(btnElem);
+        divElem.appendChild(aElem);
+        displayContainer.appendChild(divElem);
 
-        setTimeout(() => {
-            document.querySelectorAll('.img-display-a')
-                .forEach(el => el.addEventListener('click', removeBack));
-        });
+        aElem.addEventListener('click', () => removeBg(divElem.id));
     }
 
-    const resetBg = () => {
-        chrome.storage.local.set({background: null}, () => {
-            console.log('Background Reset');
-            loadBackground();
-            showNotification("Success. Background reseted successfully");
-        });
+    async function removeDisplayImage(id) {
+        divElem = document.getElementById(id);
+        divElem.remove();
+    }
+
+    const resetBg = async () => {
+        arrayId = await getIdArray();
+        for (let i; i < arrayId.length; i++) {
+            const key = arrayId[i];
+            chrome.storage.local.set({[key]: null});
+        }
+        chrome.storage.local.set({idArray: null});
+        console.log('Background Reset');
+        displayContainer.innerHTML = '';
+        showNotification("Success. Background reseted successfully");
+        loadBackground();
     }
 
     function showNotification(message) {
@@ -887,33 +851,30 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('notification').style.opacity = "0";
     }
 
-    const removeBack = async (event) => {
-        console.log("remove");
-        event.preventDefault();
-        event.stopPropagation();
+    async function removeBg(id) {
+        console.log("Removing Background");
 
-        let backgroundArray = await getBackgroundArray();
+        let idArrayB = await getIdArray();
 
-        // elemento clicado
-        const clickedEl = event.currentTarget;
+        idArrayB = idArrayB.filter(item => item !== id);
 
-        // pega somente a imagem REAL, não a lixeira
-        const img = clickedEl.querySelector('.img-display-back');
-        if (!img) return;
-
-        const base64ToRemove = img.getAttribute('src');
-
-        // remove do array
-        backgroundArray = backgroundArray.filter(b64 => b64 !== base64ToRemove);
-
-        // salva no STORAGE CORRETO
-        await chrome.storage.local.set({ background: backgroundArray });
+        await chrome.storage.local.set({ idArray: idArrayB });
+        chrome.storage.local.remove(id);
 
         // atualiza UI
-        loadImageDisplay(backgroundArray);
+        loadImageDisplay(idArrayB);
         loadBackground();
+        removeDisplayImage(id);
     };
-
+    
+    function inputGrid(input) {
+        console.log('sla ', input.value);
+        if (input.value < 0) {
+            input.value = 0;
+        } else if (input.value > 15) {
+            input.value = 15;
+        }
+    }
 
 
     // Event Listeners
@@ -926,15 +887,12 @@ document.addEventListener('DOMContentLoaded', () => {
     importLinksBtn.addEventListener('click', importLinks);
     fileInput.addEventListener('change', importLinksInput);
     resetBgBtn.addEventListener('click', resetBg);
-    closeNotificationBtn.addEventListener('click', closeNotification)
-
-    chrome.storage.onChanged.addListener((changes, namespace) => {
-        for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-            console.log(
-            `Storage key "${key}" in namespace "${namespace}" changed.`,
-            `Old value was "${oldValue}", new value is &quot;${newValue}".`
-            );
-        }
-    });
+    closeNotificationBtn.addEventListener('click', closeNotification);
+    btnColMaxGrid.addEventListener('click', () => maxGrid(btnColMaxGrid));
+    btnColMinGrid.addEventListener('click', () => minGrid(btnColMinGrid));
+    btnRowMaxGrid.addEventListener('click', () => maxGrid(btnRowMaxGrid))
+    btnRowMinGrid.addEventListener('click', () => minGrid(btnRowMinGrid))
+    inputColGrid.addEventListener('change', () => inputGrid(inputColGrid));
+    inputRowGrid.addEventListener('change', () => inputGrid(inputRowGrid));
 
 });
