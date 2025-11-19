@@ -6,11 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    let backgroundArray;
-    chrome.storage.sync.get(['background'], (result) => {
-        backgroundArray = result.background;
-    });
-
     // background cycling
     const totalDeImagens = 25;
     let autoresFoto = ["Loic Lagarde", "Kohki Yamaguchi", "Kate Hook", "Justin Choquette", "Frauke Hamesiter", 
@@ -51,24 +46,24 @@ document.addEventListener('DOMContentLoaded', () => {
     loadBackground();
 
     async function loadBackground() {
-        const { background } = await chrome.storage.local.get(['background']);
-
-        if (background) {
+        const backgroundArray = await getBackgroundArray();
+        console.log('Background Array:', backgroundArray);
+        if (backgroundArray.length > 0) {
             console.log('Loading Customized Background.');
 
-            const index = getImageIndex(backgroundArray.length);
-            const backImg = backgroundArray[index];
+            const index = await getImageIndex(backgroundArray.length);
+            const backImg = backgroundArray[index - 1];
 
             document.body.style.backgroundImage = `url('${backImg}')`;
-            setImageDisplay(backImg);
+            loadImageDisplay()
             hideAutor();
             return;
         }
 
+        console.log('Loading normal background images.');
         showAutor();
-        console.log('Loading normal background images.', background);
 
-        const index = getImageIndex(totalDeImagens);
+        let index = await getImageIndex(totalDeImagens);
 
         const imagemEscolhida = `img/${index}.jpg`;
         console.log('indice', index, 'imagemEscolhida', imagemEscolhida);
@@ -83,20 +78,17 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.backgroundImage = `url('${imagemEscolhida}')`;
     }
 
-    function getImageIndex(imagesLength) {
-        return new Promise((resolve) => {
-            chrome.storage.sync.get(['lastImageIndex'], (result) => {
-                let ultimoIndice = result.lastImageIndex || 0;
-                let proximoIndice = ultimoIndice + 1;
+    async function getImageIndex(imagesLength) {
+        const { lastImageIndex = 0 } = await chrome.storage.sync.get('lastImageIndex');
 
-                if (proximoIndice > imagesLength) proximoIndice = 1;
+        let proximoIndice = lastImageIndex + 1;
 
-                chrome.storage.sync.set({ lastImageIndex: proximoIndice });
+        if (proximoIndice > imagesLength) proximoIndice = 1;
 
-                console.log('prox indice ', proximoIndice);
-                resolve(proximoIndice);
-            });
-        });
+        await chrome.storage.sync.set({ lastImageIndex: proximoIndice });
+
+        console.log('prox indice ', proximoIndice);
+        return proximoIndice;
     }
 
 
@@ -736,6 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('Links imported successfully.');
                     loadLinks();
                     closeMenu();
+                    fileInput.value = '';
                 });
 
             } catch (err) {
@@ -750,34 +743,71 @@ document.addEventListener('DOMContentLoaded', () => {
         changeBGInput.click();
     };
 
+    function getBackgroundArray() {
+        return new Promise((resolve) => {
+            chrome.storage.local.get(['background'], (result) => {
+                const backgroundArray = result.background || [];
+                resolve(backgroundArray);
+            });
+        });
+    }
+
     const changeBgInput = async () => {
         console.log('Changing BG Image')
-        imgBg = changeBGInput?.files;
-        console.log(imgBg);
+        let imgBg = changeBGInput?.files;
+        let backgroundArray = await getBackgroundArray();
+        console.log('BG Array', backgroundArray)
         if (imgBg.length > 0) {
-            for (let i; i < imgBg.length; i++) {
+            for (let i = 0; i < imgBg.length; i++) {
                 try { customImg = await convertToBase64(imgBg[i]); } catch (err) { console.error(err) }
-                backgroundArray.add(customImg)
+                backgroundArray.push(customImg);
             }
-            console.log(backgroundArray)
-            chrome.storage.local.set({ background: backgroundArray }, () => {
-              showNotification("Success. Background picture changed successfully");
-              loadBackground()
-              setImageDisplay(customImg);
-              hideAutor();
+            await chrome.storage.local.set({ background: backgroundArray }, () => {
+                showNotification("Success. Background picture changed successfully");
+                loadBackground();
+                loadImageDisplay();
+                changeBGInput.value = '';
             });
         } else {
             return false;
         }
     }
 
-    function setImageDisplay(image) {
-        imgDisplay.src = image;
-        imgDisplay.style.display = "block"
+    function loadImageDisplay() {
+        const displayContainer = document.getElementById('img-display-container');
+        chrome.storage.local.get(['background'], (result) => {
+            displayContainer.innerHTML = '';
+            for (let i = 0; i < result.background.length; i++) {
+                const divElem = document.createElement('div');
+                divElem.style.position = 'relative';
+                divElem.className = 'div-display';
+
+                const aElem = document.createElement('button');
+                aElem.className = 'img-display-a';
+                aElem.href = "https://google.com";
+
+                const btnElem = document.createElement('img');
+                btnElem.className = 'img-display-btn';
+                btnElem.src = 'icons/svg/trash.svg';
+
+                const imgElem = document.createElement('img');
+                imgElem.src = result.background[i];
+                imgElem.className = 'img-display-back';
+
+                aElem.appendChild(imgElem);
+                aElem.appendChild(btnElem);
+                divElem.appendChild(aElem);
+                displayContainer.appendChild(divElem);
+            }
+        });
+        setTimeout(() => {
+            document.querySelectorAll('.img-display-a')
+                .forEach(el => el.addEventListener('click', removeBack));
+        });
     }
 
     const resetBg = () => {
-        chrome.storage.local.set({background: ''}, () => {
+        chrome.storage.local.set({background: null}, () => {
             console.log('Background Reset');
             loadBackground();
             showNotification("Success. Background reseted successfully");
@@ -798,6 +828,35 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('notification').style.opacity = "0";
     }
 
+    const removeBack = async (event) => {
+        console.log("remove");
+        event.preventDefault();
+        event.stopPropagation();
+
+        let backgroundArray = await getBackgroundArray();
+
+        // elemento clicado
+        const clickedEl = event.currentTarget;
+
+        // pega somente a imagem REAL, não a lixeira
+        const img = clickedEl.querySelector('.img-display-back');
+        if (!img) return;
+
+        const base64ToRemove = img.getAttribute('src');
+
+        // remove do array
+        backgroundArray = backgroundArray.filter(b64 => b64 !== base64ToRemove);
+
+        // salva no STORAGE CORRETO
+        await chrome.storage.local.set({ background: backgroundArray });
+
+        // atualiza UI
+        loadImageDisplay();
+        loadBackground();
+    };
+
+
+
     // Event Listeners
     openBtn.addEventListener('click', openMenu);
     closeBtn.addEventListener('click', closeMenu);
@@ -810,5 +869,13 @@ document.addEventListener('DOMContentLoaded', () => {
     resetBgBtn.addEventListener('click', resetBg);
     closeNotificationBtn.addEventListener('click', closeNotification)
 
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+            console.log(
+            `Storage key "${key}" in namespace "${namespace}" changed.`,
+            `Old value was "${oldValue}", new value is &quot;${newValue}".`
+            );
+        }
+    });
 
 });

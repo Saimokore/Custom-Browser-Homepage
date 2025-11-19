@@ -4,6 +4,7 @@ body, html {
     padding: 0;
     height: 100%;
     font-family: Outfit, Arial, sans-serif;
+    background-size: 1920px;
 }
 
 .overlay-container {
@@ -598,12 +599,14 @@ a {
     width: 80%;
 }
 
-.img-display-back {
-    display: none;
-    width: 90px;
-    aspect-ratio: 1 / 1;
-    border-radius: 8px;
-    border: 1px solid #3b3b3b;
+::-webkit-scrollbar {
+  width: 0.5em;
+  height: 0.5em;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255,255,255,.1);
+  border-radius: 3px;
 }
 
 #settings-menu .context-menu-btn {
@@ -707,4 +710,48 @@ h3 {
     top: 50%;
     right: 15px;
     transform: translate(0, -50%);
+}
+
+
+.img-display-a {
+    cursor: pointer;
+    border: 0px;
+    background-color: transparent;
+    padding: 0px;
+}
+
+.img-display-a:hover .img-display-btn {
+    opacity: 1;
+}
+
+.div-display:hover .img-display-back {
+    filter: opacity(0.6);
+}
+
+.img-display-back {
+    width: 90px;
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    border: 1px solid #3b3b3b;
+    transition: filter 0.1s ease-in-out;
+}
+
+.img-display-btn {
+    position: absolute;
+    opacity: 0;
+    width: 25px;
+    height: 25px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: invert(97%);
+    transition: opacity 0.125s ease-in-out;
+}
+
+
+#img-display-container {
+    gap: 18px;
+    flex-wrap: wrap;
+    max-height: 250px;
+    overflow-y: auto;
 }

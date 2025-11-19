@@ -98,13 +98,13 @@
                         
                         <div class="settings-section" >
                             <h3>Change Background Pictures</h3>
-                            <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,.gif,image/x-icon,image/png,image/jpeg,image/gif" id="changeBGInput" class="hidden file-input"/>
-                            <img src="" alt="" id="img-display" class="img-display-back">
+                            <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,.gif,image/x-icon,image/png,image/jpeg,image/gif" id="changeBGInput" class="hidden file-input" multiple/>
+                            <div id="img-display-container" class="settings-container"></div>
                             <button id="change-bg-btn" class="context-menu-btn">
                                 🏞️ Load a background or a background gallery.
                             </button>
                             <small class="file-hint">
-                                Can be a gallery. Accepted formats: .png, .gif, .jpg, .jpeg, .webp
+                                Can be multiple files. Accepted formats: .png, .gif, .jpg, .jpeg, .webp
                             </small>
                         </div>
                         
