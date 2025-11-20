@@ -91,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-
     async function getImageIndex(imagesLength) {
         const { lastImageIndex = 0 } = await chrome.storage.sync.get('lastImageIndex');
 
@@ -125,13 +124,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeBtn         =   document.getElementById('remove-btn');
     const editBtn           =   document.getElementById('edit-btn');
 
-    // Grid configuration
     const GRID_ROWS = 4;
-    const GRID_COLS = 7; // Changed to 7 columns
+    const GRID_COLS = 8;
     let gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
 
+    // Grid configuration
+    async function gridConfiguration() {
+        return new Promise((resolve, reject) => {
+            const GRID_ROWS = chrome.storage.local.get(['row']) || 4;
+            const GRID_COLS = chrome.storage.local.get(['col']) || 8;
+            let gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
+            resolve(gridMatrix);
+        });
+    }
+
     // Creates the grid structure
-    function createGrid() {
+    async function createGrid() {
+        await gridConfiguration();
+        console.log('row: ', GRID_ROWS)
+        console.log('col: ', GRID_COLS)
         const gridContainer = document.querySelector('.grid-container');
         if (!gridContainer) return;
         
@@ -868,15 +879,37 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     function inputGrid(input) {
-        console.log('sla ', input.value);
-        if (input.value < 0) {
-            input.value = 0;
-        } else if (input.value > 15) {
-            input.value = 15;
+        let value = Number(input.value);
+
+        if (isNaN(value)) {
+            value = 0; // ou qualquer padrão
         }
+
+        if (value < 0) value = 0;
+        if (value > 15) value = 15;
+
+        input.value = value;
     }
 
+    function maxGrid(input) {
+        let value = Number(input.value) + 1;
+        if (value < 0) value = 0;
+        if (value > 15) value = 15;
 
+        chrome.storage.local.set({[input.id]: value});
+
+        input.value = value;
+    }
+
+    function minGrid(input) {
+        let value = Number(input.value) - 1;
+        if (value < 0) value = 0;
+        if (value > 15) value = 15;
+        
+        chrome.storage.local.set({[input.id]: value});
+        input.value = value;
+    }
+    
     // Event Listeners
     openBtn.addEventListener('click', openMenu);
     closeBtn.addEventListener('click', closeMenu);
@@ -888,10 +921,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', importLinksInput);
     resetBgBtn.addEventListener('click', resetBg);
     closeNotificationBtn.addEventListener('click', closeNotification);
-    btnColMaxGrid.addEventListener('click', () => maxGrid(btnColMaxGrid));
-    btnColMinGrid.addEventListener('click', () => minGrid(btnColMinGrid));
-    btnRowMaxGrid.addEventListener('click', () => maxGrid(btnRowMaxGrid))
-    btnRowMinGrid.addEventListener('click', () => minGrid(btnRowMinGrid))
+    btnColMaxGrid.addEventListener('click', () => maxGrid(inputColGrid));
+    btnColMinGrid.addEventListener('click', () => minGrid(inputColGrid));
+    btnRowMaxGrid.addEventListener('click', () => maxGrid(inputRowGrid));
+    btnRowMinGrid.addEventListener('click', () => minGrid(inputRowGrid));
     inputColGrid.addEventListener('change', () => inputGrid(inputColGrid));
     inputRowGrid.addEventListener('change', () => inputGrid(inputRowGrid));
 
