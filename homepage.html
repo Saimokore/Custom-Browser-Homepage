@@ -101,7 +101,8 @@
                             <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,.gif,image/x-icon,image/png,image/jpeg,image/gif" id="changeBGInput" class="hidden file-input" multiple/>
                             <div id="img-display-container" class="settings-container"></div>
                             <button id="change-bg-btn" class="context-menu-btn">
-                                🏞️ Add a Background Image
+                                <img src="icons\svg\picture-svgrepo-com.svg" alt="" class="icons">
+                                Add a Background Image
                             </button>
                             <small class="file-hint">
                                 Can be multiple files. Accepted formats: .png, .gif, .jpg, .jpeg, .webp
@@ -114,17 +115,25 @@
                                 <div class="form-group settings-form">
                                     <label for="row">Rows</label>
                                     <div style="display: flex;">
-                                        <button id="min-row"></button>
+                                        <button id="min-row" class="grid-button">
+                                            <img src="icons\svg\arrow-left-svgrepo-com.svg" alt="" class="arrow-icon">
+                                        </button>
                                         <input type="number" id="row" class=" "/>
-                                        <button id="max-row"></button>
+                                        <button id="max-row" class="grid-button">
+                                            <img src="icons\svg\arrow-right-svgrepo-com.svg" alt="" class="arrow-icon">
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="form-group settings-form">
                                     <label for="col">Columns</label>
                                     <div style="display: flex;">
-                                        <button id="min-col"></button>
+                                        <button id="min-col" class="grid-button">
+                                            <img src="icons\svg\arrow-left-svgrepo-com.svg" alt="" class="arrow-icon">
+                                        </button>
                                         <input type="number" min="0" max="15" id="col" class=" "/>
-                                        <button id="max-col"></button>
+                                        <button id="max-col" class="grid-button">
+                                            <img src="icons\svg\arrow-right-svgrepo-com.svg" alt="" class="arrow-icon">
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -136,20 +145,27 @@
                             <h3>Import/Export Website's Links</h3>
                             <input value="Import" type="file" id="selectFiles" accept=".json" class="hidden file-input"/>
                             <button id="import-links-btn" class="context-menu-btn">
-                                📥 Import Websites
+                                <img src="icons\svg\import-svgrepo-com.svg" alt="" class="icons">
+                                Import Websites
                             </button>
                             
                             <a id="downloadAnchorElem" style="display:none"></a>
                             <button id="export-links-btn" class="context-menu-btn">
-                                📤 Export Websites
+                                <img src="icons\svg\export-svgrepo-com.svg" alt="" class="icons">
+                                Export Websites
                             </button>
                         </div>
                         
                         <hr class="menu-divider">
                         
                         <button id="reset-bg-settings-btn" class="context-menu-btn remove">
-                            🔄 Reset Background
-                        </button>   
+                            <img src="icons\svg\reset-forward-svgrepo-com.svg" alt="" class="icons">
+                            Reset Background
+                        </button>
+                        <button id="reset-links-settings-btn" class="context-menu-btn remove">
+                            <img src="icons\svg\reset-forward-svgrepo-com.svg" alt="" class="icons">
+                            Reset Websites
+                        </button>  
                     </div>
                 </div>
             </div>

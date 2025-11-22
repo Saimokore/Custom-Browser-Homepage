@@ -124,17 +124,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const removeBtn         =   document.getElementById('remove-btn');
     const editBtn           =   document.getElementById('edit-btn');
 
-    const GRID_ROWS = 4;
-    const GRID_COLS = 8;
-    let gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
+    let GRID_ROWS = 4;
+    let GRID_COLS = 8;
 
     // Grid configuration
     async function gridConfiguration() {
         return new Promise((resolve, reject) => {
-            const GRID_ROWS = chrome.storage.local.get(['row']) || 4;
-            const GRID_COLS = chrome.storage.local.get(['col']) || 8;
-            let gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
-            resolve(gridMatrix);
+            chrome.storage.sync.get(['grid'], (result) => {
+                if (result.grid) {
+                    console.log('Grid config found:', result.grid);
+                    GRID_ROWS = result.grid.row;
+                    GRID_COLS = result.grid.col;
+                } else {
+                    console.log('No grid config found. Setting default 4x8.');
+                    //chrome.storage.sync.set({ grid: { row: 4, col: 8 } });
+                }
+                let gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
+                resolve(gridMatrix);
+            });
         });
     }
 
@@ -144,6 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('row: ', GRID_ROWS)
         console.log('col: ', GRID_COLS)
         const gridContainer = document.querySelector('.grid-container');
+        //grid-template-columns: repeat(7, 1fr);
+        gridContainer.style.gridTemplateColumns = `repeat(${GRID_COLS}, 1fr)`;
+
         if (!gridContainer) return;
         
         gridContainer.innerHTML = '';
@@ -194,8 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Carrega e renderiza links
-    function loadLinks() {
-        createGrid(); // Create grid first
+    async function loadLinks() {
+        await createGrid(); // Create grid first
 
         chrome.storage.sync.get(['links'], (result) => {
             const links = result.links || [];
@@ -541,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Carrega e inicializa
-    createGrid();
+    //createGrid();
     loadLinks();
     initSortable();
 
@@ -648,6 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRowMinGrid = document.getElementById('min-row');
     const inputColGrid = document.getElementById('col');
     const inputRowGrid = document.getElementById('row');
+    const resetLinksBtn = document.getElementById('reset-links-settings-btn');
 
     const openMenu = () => {
         hideOverlay();
@@ -659,6 +670,17 @@ document.addEventListener('DOMContentLoaded', () => {
         backdrop.style.display = 'none';
         settingsMenu.style.display = 'none';
     };
+
+    const resetLinks = () => {
+        if (confirm('Are you sure you want to reset all links? This action cannot be undone.')) {
+            chrome.storage.sync.set({ links: [] }, () => {
+                console.log('Links reset successfully.');
+                loadLinks();
+                closeMenu();
+                showNotification("Success. All links have been reset.");
+            });
+        }
+    }
 
     const exportLinks = () => {
         console.log('Exporting links...');
@@ -836,16 +858,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const resetBg = async () => {
-        arrayId = await getIdArray();
-        for (let i; i < arrayId.length; i++) {
-            const key = arrayId[i];
-            chrome.storage.local.set({[key]: null});
+        if (confirm('Are you sure you want to reset the backgrounds? This action cannot be undone.')) {
+            arrayId = await getIdArray();
+            for (let i; i < arrayId.length; i++) {
+                const key = arrayId[i];
+                chrome.storage.local.set({[key]: null});
+            }
+            chrome.storage.local.set({idArray: null});
+            console.log('Background Reset');
+            displayContainer.innerHTML = '';
+            showNotification("Success. Background reseted successfully");
+            loadBackground();
         }
-        chrome.storage.local.set({idArray: null});
-        console.log('Background Reset');
-        displayContainer.innerHTML = '';
-        showNotification("Success. Background reseted successfully");
-        loadBackground();
     }
 
     function showNotification(message) {
@@ -877,38 +901,51 @@ document.addEventListener('DOMContentLoaded', () => {
         loadBackground();
         removeDisplayImage(id);
     };
+
+    setGridDefaults();
+
+    function setGridDefaults() {
+        chrome.storage.sync.get(['grid'], (result) => {
+            inputColGrid.value = result.grid.col || 8;
+            inputRowGrid.value = result.grid.row || 4;
+        });
+    }
     
+    function clamp(value, min = 1, max = 15) {
+        return Math.min(Math.max(value, min), max);
+    }
+
     function inputGrid(input) {
-        let value = Number(input.value);
-
-        if (isNaN(value)) {
-            value = 0; // ou qualquer padrão
-        }
-
-        if (value < 0) value = 0;
-        if (value > 15) value = 15;
-
+        const value = clamp(Number(input.value));
         input.value = value;
+        saveGrid(input.id, value);
     }
 
     function maxGrid(input) {
-        let value = Number(input.value) + 1;
-        if (value < 0) value = 0;
-        if (value > 15) value = 15;
-
-        chrome.storage.local.set({[input.id]: value});
-
+        const value = clamp(Number(input.value) + 1);
         input.value = value;
+        saveGrid(input.id, value);
     }
 
     function minGrid(input) {
-        let value = Number(input.value) - 1;
-        if (value < 0) value = 0;
-        if (value > 15) value = 15;
-        
-        chrome.storage.local.set({[input.id]: value});
+        const value = clamp(Number(input.value) - 1);
         input.value = value;
+        saveGrid(input.id, value);
     }
+
+    async function saveGrid(rowOrCol, value) {
+        const stored = await chrome.storage.sync.get('grid');
+
+        // Garantir que grid exista
+        const grid = stored.grid || { row: 4, col: 8 };
+
+        if (rowOrCol === 'row') grid.row = value;
+        if (rowOrCol === 'col') grid.col = value;
+
+        console.log('Saving grid:', grid);
+        chrome.storage.sync.set({ grid });
+    }
+
     
     // Event Listeners
     openBtn.addEventListener('click', openMenu);
@@ -927,5 +964,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btnRowMinGrid.addEventListener('click', () => minGrid(inputRowGrid));
     inputColGrid.addEventListener('change', () => inputGrid(inputColGrid));
     inputRowGrid.addEventListener('change', () => inputGrid(inputRowGrid));
+    resetLinksBtn.addEventListener('click', resetLinks);
 
 });
