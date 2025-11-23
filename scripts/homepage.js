@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function init() {
         setGridDefaults();
-        const result = await chrome.storage.sync.get(['defaultBGs']);
+        const result = await chrome.storage.sync.get('defaultBGs');
         
         if (result.defaultBGs) {
             await resetBack(); 
@@ -91,15 +91,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const contextMenu       =   document.getElementById('context-menu');
     const removeBtn         =   document.getElementById('remove-btn');
     const editBtn           =   document.getElementById('edit-btn');
+    const gridContainer     =   document.querySelector('.grid-container');
 
     let GRID_ROWS = 4;
     let GRID_COLS = 8;
-    let gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
+    let gridArray = [];
 
     // Grid configuration
     async function gridConfiguration() {
         return new Promise((resolve, reject) => {
-            chrome.storage.sync.get(['grid'], (result) => {
+            chrome.storage.sync.get(['grid', 'links'], (result) => {
                 if (result.grid) {
                     console.log('Grid config found:', result.grid);
                     GRID_ROWS = result.grid.row;
@@ -110,8 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     GRID_ROWS = 4;
                     GRID_COLS = 8;
                 }
-                gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
-                resolve(gridMatrix);
+                gridArray = result.links;
+                console.log('gridarrau: ', gridArray)
+                resolve(gridArray);
             });
         });
     }
@@ -119,26 +121,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Creates the grid structure
     async function createGrid() {
         await gridConfiguration();
-        const gridContainer = document.querySelector('.grid-container');
         
         if (!gridContainer) return;
         
-        gridContainer.style.gridTemplateColumns = `repeat(${GRID_COLS}, 1fr)`;
+        gridContainer.style.width = `${GRID_COLS * 110 + 40}px`;
         gridContainer.innerHTML = '';
-        
-        for (let row = 0; row < GRID_ROWS; row++) {
-            for (let col = 0; col < GRID_COLS; col++) {
-                const cell = document.createElement('div');
-                cell.className = 'grid-cell';
-                cell.dataset.row = row;
-                cell.dataset.col = col;
-                gridContainer.appendChild(cell);
-            }
-        }
     }
 
     // Renderiza um único link
-    function renderLink(name, url, customIcon, id, row = 0, col = 0) {
+    function renderLink(name, url, customIcon, id) {
         const fullUrl = url?.startsWith('http') ? url : ('https://' + (url || ''));
         let hostname;
         try { hostname = new URL(fullUrl).hostname; } catch (e) { hostname = url || ''; }
@@ -148,8 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
         newLink.className = 'quick-link';
         newLink.dataset.name = name;
         newLink.dataset.id = id || generateId();
-        newLink.dataset.row = String(row);
-        newLink.dataset.col = String(col);
         if (customIcon) newLink.dataset.customIcon = customIcon;
 
         // icon + text...
@@ -168,6 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showContextMenu(e, newLink);
         });
 
+        console.log('rendered link ', newLink)
         return newLink;
     }
 
@@ -178,24 +168,31 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.storage.sync.get(['links'], (result) => {
             const links = result.links || [];
             
-            // Reset matrix
-            gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
-            
             links.forEach(link => {
-                const row = parseInt(link.row) || 0;
-                const col = parseInt(link.col) || 0;
-                
-                if (row < GRID_ROWS && col < GRID_COLS) {
-                    const cell = document.querySelector(`.grid-cell[data-row="${row}"][data-col="${col}"]`);
-                    if (cell && !cell.hasChildNodes()) { // Only place if cell is empty
-                        const linkEl = renderLink(link.name, link.url, link.customIcon, link.id, row, col);
-                        cell.appendChild(linkEl);
-                        gridMatrix[row][col] = link;
-                    }
-                }
+                const linkEl = renderLink(link.name, link.url, link.customIcon, link.id);
+                gridContainer.appendChild(linkEl);
+                console.log('LinkEl: ', link)
             });
         });
     }
+
+    async function addLink(link) {
+        const result = await chrome.storage.sync.get('links');
+        gridArray = result.links || [];
+        gridArray.push(link);
+        await chrome.storage.sync.set({links: gridArray});
+        console.log('GridArray: ', gridArray)
+    }
+
+    // for (let row = 0; row < GRID_ROWS; row++) {
+    //         for (let col = 0; col < GRID_COLS; col++) {
+    //             const cell = document.createElement('div');
+    //             cell.className = 'grid-cell';
+    //             cell.dataset.row = row;
+    //             cell.dataset.col = col;
+    //             gridContainer.appendChild(cell);
+    //         }
+    //     }
 
     function generateId() {
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -204,60 +201,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // state for editing
     let activeLink = null;
     let isEditing = false;
-    let editingCell = null; // HTMLElement da célula que está sendo editada
-    let editingRow = null;
-    let editingCol = null;
-
-    // Rebuild matrix from DOM (robusto após qualquer drag/drop)
-    function rebuildMatrixFromDOM() {
-        gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
-        document.querySelectorAll('.grid-cell').forEach(cell => {
-            const row = parseInt(cell.dataset.row, 10);
-            const col = parseInt(cell.dataset.col, 10);
-            const linkEl = cell.querySelector('.quick-link');
-            if (linkEl) {
-                // atualiza dataset do link para ficar coerente
-                linkEl.dataset.row = String(row);
-                linkEl.dataset.col = String(col);
-
-                gridMatrix[row][col] = {
-                    id: linkEl.dataset.id,
-                    name: linkEl.dataset.name,
-                    url: linkEl.href,
-                    customIcon: linkEl.dataset.customIcon || null,
-                    row,
-                    col
-                };
-            }
-        });
-    }
+    let editingLink = null; // HTMLElement da célula que está sendo editada
+    let editingId = null;
 
     // Remove link usando referência DOM atual (closest cell)
     function removeLink(linkElement) {
         if (!linkElement) return hideContextMenu();
-        const cell = linkElement.closest('.grid-cell');
-        if (!cell) return hideContextMenu();
-        const row = parseInt(cell.dataset.row, 10);
-        const col = parseInt(cell.dataset.col, 10);
+        const link = linkElement.closest('.quick-link');
+        if (!link) return hideContextMenu();
 
-        // Limpa matriz e DOM
-        gridMatrix[row][col] = null;
-        cell.innerHTML = '';
+        link.remove();
 
         // Salva e esconde menu
-        chrome.storage.sync.set({ links: getLinksFromMatrix() }, () => {
+        chrome.storage.sync.set({ links: getLinksFromGrid() }, () => {
             hideContextMenu();
+        });
+    }
+
+    async function getLinkById(id) {
+        const result = await getGridArray();
+        gridArray = result.links || [];
+
+        return gridArray.find(link => link.id === id) || null;
+    }
+
+    async function getGridArray() {
+        return new Promise((resolve) => {
+            chrome.storage.sync.get(['links'], (result) => {
+                const arr = result.links || [];
+                gridArray = arr;
+                resolve(arr);
+            });
         });
     }
 
     // Ao abrir o menu "Editar", guarda a célula atual e preenche o formulário
     function openEditFor(linkElement) {
         if (!linkElement) return;
-        const cell = linkElement.closest('.grid-cell');
-        if (!cell) return;
-        editingCell = cell;
-        editingRow = parseInt(cell.dataset.row, 10);
-        editingCol = parseInt(cell.dataset.col, 10);
+        const link = linkElement.closest('.quick-link');
+        if (!link) return;
+        editingLink = link;
+        editingId = link.dataset.id;
+        console.log('edit log: ', editingId)
 
         isEditing = true;
         activeLink = linkElement;
@@ -269,24 +254,14 @@ document.addEventListener('DOMContentLoaded', () => {
         showOverlay();
     }
 
-    // Helper: converte matriz em array plano para storage
-    function getLinksFromMatrix() {
-        const links = [];
-        gridMatrix.forEach((rowArr, r) => {
-            rowArr.forEach((cellObj, c) => {
-                if (cellObj) {
-                    links.push({
-                        id: cellObj.id,
-                        name: cellObj.name,
-                        url: cellObj.url,
-                        customIcon: cellObj.customIcon || null,
-                        row: r,
-                        col: c
-                    });
-                }
-            });
-        });
-        return links;
+    function getLinksFromGrid() {
+        const items = document.querySelectorAll('.quick-link');
+        return Array.from(items).map(item => ({
+            id: item.dataset.id,
+            name: item.dataset.name,
+            url: item.href,
+            customIcon: item.dataset.customIcon || null
+        }));
     }
 
     // UI helpers (were missing and caused runtime errors)
@@ -306,9 +281,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (form) form.reset();
         isEditing = false;
         activeLink = null;
-        editingCell = null;
-        editingRow = null;
-        editingCol = null;
+        editingLink = null;
+        editingId = null;
     }
 
     function hideContextMenu() {
@@ -317,43 +291,18 @@ document.addEventListener('DOMContentLoaded', () => {
         activeLink = null;
     }
 
-    // Inicializa Sortable com restrição e sem alterar layout
     function initSortable() {
-        // destroy previous instances if you kept them (not shown here)
-        document.querySelectorAll('.grid-cell').forEach(cell => {
-            // ensure cell is a valid Sortable container
-            new Sortable(cell, {
-                animation: 150,
-                ghostClass: 'link-ghost',
-                group: {
-                    name: 'links',
-                    pull: true,
-                    put: function (to, from, dragged) {
-                        // allow put only if target cell currently empty OR target === source
-                        const toEl = to.el;
-                        // if dropping back into same cell allow (reorder)
-                        if (toEl === from.el) return true;
-                        // otherwise allow only if no quick-link inside
-                        return toEl.querySelectorAll('.quick-link').length === 0;
-                    }
-                },
-                onStart: function () {
-                    // marca apenas células vazias como alvo visual — usa classe que não altera layout
-                    document.querySelectorAll('.grid-cell').forEach(c => {
-                        if (c.querySelectorAll('.quick-link').length === 0) c.classList.add('valid-target');
-                    });
-                },
-                onEnd: function (evt) {
-                    // limpa indicadores
-                    document.querySelectorAll('.grid-cell.valid-target').forEach(c => c.classList.remove('valid-target'));
-
-                    // rebuild matrix from DOM para garantir consistência
-                    rebuildMatrixFromDOM();
-
-                    // salva alterações
-                    chrome.storage.sync.set({ links: getLinksFromMatrix() });
+        new Sortable(document.getElementById('grid-container'), {
+            animation: 150,
+            ghostClass: 'ghost',
+            group: {
+                name: 'grid',
+                pull: false,
+                put: false
+            },
+            onEnd: function (evt) {
+                    chrome.storage.sync.set({ links: getLinksFromGrid() });
                 }
-            });
         });
     }
 
@@ -390,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
         contextMenu.style.display = 'block';
     }
 
-    // Form submit: trata ADD e EDIT usando editingCell
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -410,65 +358,50 @@ document.addEventListener('DOMContentLoaded', () => {
             try { customIcon = await convertToBase64(file); } catch (err) { console.error(err); }
         }
 
-        if (isEditing && editingCell) {
-            // update existing
-            const r = editingRow;
-            const c = editingCol;
-            const existing = gridMatrix[r][c] || {};
+        if (isEditing && editingId) {
+            const existing = await getLinkById(editingId) || {};
+            const editGridArray = await getGridArray();
+
             const updated = {
-                id: existing.id || generateId(),
+                id: editingId,
                 name: siteName,
                 url: siteUrl,
-                customIcon: customIcon || existing.customIcon || null,
-                row: r, col: c
+                customIcon: customIcon || existing.customIcon || null
             };
-            gridMatrix[r][c] = updated;
 
-            // update DOM
-            editingCell.innerHTML = '';
-            const linkEl = renderLink(updated.name, updated.url, updated.customIcon, updated.id, r, c);
-            editingCell.appendChild(linkEl);
+            const index = editGridArray.findIndex(item => item.id === editingId);
+            if (index !== -1) {
+                editGridArray[index] = updated;
+            } else {
+                // if not found, add it
+                editGridArray.push(updated);
+            }
 
-            // reset editing flags
+            // update DOM: replace the edited element with a freshly rendered one
+            const newEl = renderLink(updated.name, updated.url, updated.customIcon, updated.id);
+            if (editingLink && editingLink.parentNode) editingLink.parentNode.replaceChild(newEl, editingLink);
+
+            await chrome.storage.sync.set({ links: editGridArray });
+
             isEditing = false;
             activeLink = null;
-            editingCell = null;
-            editingRow = null;
-            editingCol = null;
+            editingLink = null;
+            editingId = null;
         } else {
-            // find first empty cell
-            let found = false;
-            let targetCell = null;
-            let tr = 0, tc = 0;
-            for (let r = 0; r < GRID_ROWS && !found; r++) {
-                for (let c = 0; c < GRID_COLS && !found; c++) {
-                    const cell = document.querySelector(`.grid-cell[data-row="${r}"][data-col="${c}"]`);
-                    if (cell && cell.querySelectorAll('.quick-link').length === 0) {
-                        found = true;
-                        tr = r; tc = c;
-                        targetCell = cell;
-                    }
-                }
-            }
-            if (!found) { alert('Não há células vazias'); return; }
-
             const newLink = {
                 id: generateId(),
                 name: siteName,
                 url: siteUrl,
-                customIcon,
-                row: tr, col: tc
+                customIcon
             };
-            gridMatrix[tr][tc] = newLink;
-
-            if (targetCell) {
-                const linkEl = renderLink(newLink.name, newLink.url, newLink.customIcon, newLink.id, tr, tc);
-                targetCell.appendChild(linkEl);
-            }
+            addLink(newLink);
+            console.log('novo link: ', newLink);
+            const linkEl = renderLink(newLink.name, newLink.url, newLink.customIcon, newLink.id);
+            gridContainer.appendChild(linkEl);
         }
 
         // save and close
-        chrome.storage.sync.set({ links: getLinksFromMatrix() }, () => {
+        chrome.storage.sync.set({ links: getLinksFromGrid() }, () => {
             hideOverlay();
             form.reset();
         });
@@ -815,7 +748,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log('Saving grid:', grid);
         chrome.storage.sync.set({ grid });
-        const gridContainer = document.querySelector('.grid-container');
         gridContainer.innerHTML = '';
         await loadLinks();
         initSortable();
