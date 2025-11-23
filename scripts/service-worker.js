@@ -15,7 +15,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 });
 
 function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
 function initialize() {
@@ -51,7 +51,9 @@ function initialize() {
         // 1. Salva os dados no storage 'sync'
         chrome.storage.sync.set({
             links: result.links,
-            showTutorial: false // Assumindo que você sempre quer definir isso
+            showTutorial: false,
+            defaultBGs: true,
+            idArray: []
         }, () => {
             console.log('Dados armazenados com sucesso no sync.');
 
@@ -60,30 +62,35 @@ function initialize() {
                 console.log('Dados originais do local storage foram excluídos.');
             });
         });
-    } else {
-        console.log('Local storage está vazio ou "links" não foi encontrado. Nada a migrar.');
     }
   });
 
-  chrome.storage.sync.get(['links'], (result) =>{
-      // Check if the 'items' object has any keys
+  chrome.storage.sync.get(['links', 'idArray'], (result) =>{
       if (!result.links || result.links.length === 0) {
-          console.log('Sync storage is empty.');
-          chrome.storage.sync.set({ 
-              links: links,
-              showTutorial: true
-          }, () => {
-              console.log('Default links and tutorial flag initialized.');
-              chrome.storage.local.set({ background: ''})
+        chrome.storage.sync.set({ 
+          links: links,
+          showTutorial: true,
+          defaultBGs: true
+        }, () => {
+          console.log('Default data saved.');
+          chrome.tabs.create({
+            url: 'chrome://newtab'
           });
+        });
       } else {
           console.log('Sync storage is NOT empty.');
-          console.log(result);
       }
   });
   
+}
 
-  chrome.tabs.create({
-    url: 'chrome://newtab'
-  });
+function clearAllSyncData() {
+    chrome.storage.sync.clear(() => {
+        if (chrome.runtime.lastError) {
+            console.error("Error clearing data:", chrome.runtime.lastError);
+        } else {
+            console.log("All sync data cleared successfully.");
+            chrome.runtime.reload(); 
+        }
+    });
 }

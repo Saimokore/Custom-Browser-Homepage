@@ -20,9 +20,6 @@
                         <!-- Grid cells will be created by JavaScript -->
                     </div>
                     <button id="add-link-btn" class="fab fab-absolute">+</button>
-                    <div class="autor-container overlay-container" id="autor">
-                        <a href="" class="autor"></a>
-                    </div>
                 </div>
             </div>
 
@@ -98,12 +95,20 @@
                         
                         <div class="settings-section" >
                             <h3>Change Background Pictures</h3>
-                            <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,.gif,image/x-icon,image/png,image/jpeg,image/gif" id="changeBGInput" class="hidden file-input" multiple/>
+                            <input type="file" accept=".svg,.png,.jpg,.jpeg,.webp,.gif,image/x-icon,image/png,image/jpeg,image/gif" id="change-bg-input" class="hidden file-input" multiple/>
                             <div id="img-display-container" class="settings-container"></div>
-                            <button id="change-bg-btn" class="context-menu-btn">
-                                <img src="icons\svg\picture-svgrepo-com.svg" alt="" class="icons">
-                                Add a Background Image
-                            </button>
+                            <div style="display: flex; gap:10px">
+                                <button id="change-bg-btn" class="context-menu-btn change-btn">
+                                    <img src="icons\svg\picture-svgrepo-com.svg" alt="" class="icons">
+                                    Add a Background Image
+                                </button>
+                                <button id="clear-list-btn" class="context-menu-btn clear-btn">
+                                    <svg class="icons" width="800px" height="800px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M18 6L17.1991 18.0129C17.129 19.065 17.0939 19.5911 16.8667 19.99C16.6666 20.3412 16.3648 20.6235 16.0011 20.7998C15.588 21 15.0607 21 14.0062 21H9.99377C8.93927 21 8.41202 21 7.99889 20.7998C7.63517 20.6235 7.33339 20.3412 7.13332 19.99C6.90607 19.5911 6.871 19.065 6.80086 18.0129L6 6M4 6H20M16 6L15.7294 5.18807C15.4671 4.40125 15.3359 4.00784 15.0927 3.71698C14.8779 3.46013 14.6021 3.26132 14.2905 3.13878C13.9376 3 13.523 3 12.6936 3H11.3064C10.477 3 10.0624 3 9.70951 3.13878C9.39792 3.26132 9.12208 3.46013 8.90729 3.71698C8.66405 4.00784 8.53292 4.40125 8.27064 5.18807L8 6M14 10V17M10 10V17" stroke="#ff6565" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Clear List
+                                </button>
+                            </div>
                             <small class="file-hint">
                                 Can be multiple files. Accepted formats: .png, .gif, .jpg, .jpeg, .webp
                             </small>
@@ -157,15 +162,17 @@
                         </div>
                         
                         <hr class="menu-divider">
-                        
-                        <button id="reset-bg-settings-btn" class="context-menu-btn remove">
-                            <img src="icons\svg\reset-forward-svgrepo-com.svg" alt="" class="icons">
-                            Reset Background
-                        </button>
-                        <button id="reset-links-settings-btn" class="context-menu-btn remove">
-                            <img src="icons\svg\reset-forward-svgrepo-com.svg" alt="" class="icons">
-                            Reset Websites
-                        </button>  
+                        <div class="settings-section" >
+                            <h3>Reset Settings</h3>
+                            <button id="reset-bg-settings-btn" class="context-menu-btn remove">
+                                <img src="icons\svg\reset-forward-svgrepo-com.svg" alt="" class="icons">
+                                Reset Background
+                            </button>
+                            <button id="reset-links-settings-btn" class="context-menu-btn remove">
+                                <img src="icons\svg\reset-forward-svgrepo-com.svg" alt="" class="icons">
+                                Reset Websites
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

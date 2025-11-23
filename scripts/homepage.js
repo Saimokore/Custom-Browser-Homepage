@@ -1,4 +1,3 @@
-// Espera o conteúdo da página carregar
 document.addEventListener('DOMContentLoaded', () => {
 
     if (!chrome?.storage?.sync) {
@@ -6,82 +5,62 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // background cycling
-    const totalDeImagens = 25;
-    let autoresFoto = ["Loic Lagarde", "Kohki Yamaguchi", "Kate Hook", "Justin Choquette", "Frauke Hamesiter", 
-                       "Caleb Wielhouwer", "Zac Watson", "Marek Piwnicki", "Colin Watts", "Caleb Wielhouwer", 
-                       "Davide Longo", "Dan Meyers", "Johannes Groll", "John Towner", "Luca Bravo", "Marek Piwnicki", 
-                       "Pascal Debrunner", "Shang Li", "Silas Baisch", "Vedant Sonani", "Ahmet Yüksek", "Colin Watts", 
-                       "Slava Auchynnikau", "Venti Views", "Colin Watts"
-                    ];
-    
-    let linksFoto = [   "https://www.instagram.com/loic.lagarde/",
-                        "https://www.instagram.com/kohki/",
-                        "https://www.instagram.com/kateh00k/",
-                        "https://www.instagram.com/justin.choquette/",
-                        "https://www.frauki.com/story",
-                        "https://www.instagram.com/calebwielhouwer/",
-                        "https://www.instagram.com/watzac/",
-                        "https://unsplash.com/pt-br/fotografias/majestosos-picos-de-montanhas-banhados-pela-luz-suave-do-por-do-sol-rgGXloz8juY",
-                        "https://unsplash.com/pt-br/fotografias/uma-cordilheira-coberta-de-neve-sob-um-ceu-nublado-8tvSElhPqKE",
-                        "https://www.instagram.com/calebwielhouwer/",
-                        "https://www.instagram.com/davidelongoph/",
-                        "https://unsplash.com/pt-br/fotografias/relampagos-caem-durante-uma-noite-tempestuosa-sobre-as-arvores-M3CjIfsOqvw",
-                        "https://unsplash.com/pt-br/fotografias/montanha-ao-lado-do-corpo-de-agua-upXoQv5GAr8",
-                        "https://unsplash.com/pt-br/fotografias/estrada-de-concreto-vazia-coberta-cercada-por-tress-altos-com-raios-de-sol-3Kv48NS4WUU",
-                        "https://unsplash.com/photos/worms-eye-view-of-mountain-during-daytime-ii5JY_46xH0",
-                        "https://unsplash.com/pt-br/fotografias/montanhas-cobertas-de-neve-contra-um-ceu-colorido-78oufSOElMk",
-                        "https://unsplash.com/pt-br/fotografias/flores-amarelas-desabrocham-no-sope-da-montanha-TOKeCFmRtj4",
-                        "https://www.shangliphotos.com/",
-                        "https://unsplash.com/pt-br/fotografias/fotografia-aerea-de-estrada-Wn4ulyzVoD4",
-                        "https://www.instagram.com/vedant.sonani/",
-                        "https://unsplash.com/pt-br/fotografias/picos-de-montanha-em-silhueta-contra-um-ceu-quente-do-por-do-sol-mybaeBtxOj8",
-                        "https://unsplash.com/pt-br/fotografias/trilhas-de-estrelas-sobre-nuvens-e-picos-de-montanhas-a-noite-Fhv1yWQFrSQ",
-                        "https://unsplash.com/pt-br/fotografias/paisagem-lunar-nevada-sob-um-ceu-noturno-estrelado-DjPMpSqHxPs",
-                        "https://unsplash.com/pt-br/fotografias/arco-rochoso-em-um-litoral-enevoado-com-ondas-do-mar-pvmCObXdIu8",
-                        "https://unsplash.com/pt-br/fotografias/picos-de-montanhas-emergem-das-nuvens-no-crepusculo-kCF-KQD7ZAE"
-                    ];
+    async function init() {
+        setGridDefaults();
+        const result = await chrome.storage.sync.get(['defaultBGs']);
+        
+        if (result.defaultBGs) {
+            await resetBack(); 
+            await chrome.storage.sync.set({ defaultBGs: false });
+        } else {
+            loadBackground();
+        }
 
-    
-    loadBackground();
+        await loadLinks();
+        initSortable();
+    }
 
     async function loadBackground() {
-        console.log(Date.now());
         const idArray = await getIdArray();
         console.log('idArray: ', idArray);
         if (idArray.length > 0) {
             console.log('Loading Customized Background.');
 
             const index = await getImageIndex(idArray.length);
-            // const backImg = backgroundArray[index - 1];
             const backImg = await getBackground(idArray[index - 1]);
 
             document.body.style.backgroundImage = `url('${backImg}')`;
             loadImageDisplay(idArray)
-            hideAutor();
-            return;
+        }
+    }
+
+    async function loadDefaultBackgrounds() {
+        const totalDeImagens = 24;
+        for (let i = 0; i < totalDeImagens; i++) {
+            await addBackground(`img/${i}.jpg`);
+            console.log(`img/${i}.jpg`);
         }
 
-        console.log('Loading normal background images.');
-        showAutor();
+    }
 
-        let index = await getImageIndex(totalDeImagens);
+    
+    async function addBackground(imageSource) {
+        const result = await chrome.storage.local.get(['idArray']);
+        let idArrayB = result.idArray || [];
+        
+        const id = 'bg_' + idArrayB.length;
+        idArrayB.push(id);
+        
+        await chrome.storage.local.set({ idArray: idArrayB });
+        await chrome.storage.local.set({ [id]: imageSource });
 
-        const imagemEscolhida = `img/${index}.jpg`;
-        console.log('indice', index, 'imagemEscolhida', imagemEscolhida);
+        addDisplayImage(id);
 
-        const autorFoto = autoresFoto[index - 1] ?? 'Unknown';
-        const linkFoto = linksFoto[index - 1] ?? '#';
-
-        const autorElem = document.getElementsByClassName('autor')[0];
-        autorElem.innerText = `Photo by: ${autorFoto}`;
-        autorElem.href = linkFoto;
-
-        document.body.style.backgroundImage = `url('${imagemEscolhida}')`;
+        console.log("New background:", id);
+        return id;
     }
 
     async function getBackground(id) {
-        console.log('Getting BG: ', id)
         return new Promise(resolve => {
             chrome.storage.local.get([id], (result) => {
                 const valor = result[id]
@@ -100,19 +79,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await chrome.storage.sync.set({ lastImageIndex: proximoIndice });
 
-        console.log('prox indice ', proximoIndice);
+        console.log('Next Index: ', proximoIndice);
         return proximoIndice;
-    }
-
-
-    function hideAutor() {
-        const autor = document.getElementById('autor');
-        autor.style.display = "none";
-    }
-    
-    function showAutor() {
-        const autor = document.getElementById('autor');
-        autor.style.display = "flex";
     }
 
     // ELEMENTOS
@@ -126,6 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let GRID_ROWS = 4;
     let GRID_COLS = 8;
+    let gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
 
     // Grid configuration
     async function gridConfiguration() {
@@ -137,9 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     GRID_COLS = result.grid.col;
                 } else {
                     console.log('No grid config found. Setting default 4x8.');
-                    //chrome.storage.sync.set({ grid: { row: 4, col: 8 } });
+                    chrome.storage.sync.set({ grid: { row: 4, col: 8 } });
+                    GRID_ROWS = 4;
+                    GRID_COLS = 8;
                 }
-                let gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
+                gridMatrix = Array(GRID_ROWS).fill(null).map(() => Array(GRID_COLS).fill(null));
                 resolve(gridMatrix);
             });
         });
@@ -148,14 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Creates the grid structure
     async function createGrid() {
         await gridConfiguration();
-        console.log('row: ', GRID_ROWS)
-        console.log('col: ', GRID_COLS)
         const gridContainer = document.querySelector('.grid-container');
-        //grid-template-columns: repeat(7, 1fr);
-        gridContainer.style.gridTemplateColumns = `repeat(${GRID_COLS}, 1fr)`;
-
+        
         if (!gridContainer) return;
         
+        gridContainer.style.gridTemplateColumns = `repeat(${GRID_COLS}, 1fr)`;
         gridContainer.innerHTML = '';
         
         for (let row = 0; row < GRID_ROWS; row++) {
@@ -226,12 +194,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             });
-            console.log(result.links);
-            initSortable();
         });
     }
 
-    // helper id generator
     function generateId() {
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
     }
@@ -350,40 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!contextMenu) return;
         contextMenu.style.display = 'none';
         activeLink = null;
-    }
-
-    // Ajuste de renderLink: garante dataset row/col e bind do menu de contexto
-    function renderLink(name, url, customIcon, id, row = 0, col = 0) {
-        const fullUrl = url?.startsWith('http') ? url : ('https://' + (url || ''));
-        let hostname;
-        try { hostname = new URL(fullUrl).hostname; } catch (e) { hostname = url || ''; }
-
-        const newLink = document.createElement('a');
-        newLink.href = fullUrl; // use fullUrl (was url)
-        newLink.className = 'quick-link';
-        newLink.dataset.name = name;
-        newLink.dataset.id = id || generateId();
-        newLink.dataset.row = String(row);
-        newLink.dataset.col = String(col);
-        if (customIcon) newLink.dataset.customIcon = customIcon;
-
-        // icon + text...
-        const icon = document.createElement('img');
-        icon.className = 'link-icon';
-        icon.alt = '';
-        icon.src = customIcon || `https://favicons.seadfeng.workers.dev/${encodeURIComponent(hostname)}.ico`;
-        icon.onerror = () => { icon.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="100%" height="100%" fill="#444"/><text x="50%" y="55%" font-size="20" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif">?</text></svg>'; };
-
-        newLink.appendChild(icon);
-        newLink.appendChild(document.createTextNode(name));
-
-        // Context menu handler always uses closest cell (evita dados stale)
-        newLink.addEventListener('contextmenu', (e) => {
-            e.preventDefault();
-            showContextMenu(e, newLink);
-        });
-
-        return newLink;
     }
 
     // Inicializa Sortable com restrição e sem alterar layout
@@ -550,20 +481,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Carrega e inicializa
-    //createGrid();
-    loadLinks();
-    initSortable();
-
-    // Validação de arquivo
-    function validateFile(file) {
-        const maxSize = 1024 * 1024;
-        if (file.size > maxSize) return 'File must be less than 1MB';
-        const validTypes = ['image/x-icon','image/png','image/jpeg','image/gif'];
-        if (!validTypes.includes(file.type)) return 'Invalid Format. Use SVG, ICO, PNG, WEBP, JPG or GIF';
-        return null;
-    }
-
     function showTutorialHighlight() {
         const tutorialOverlay = document.getElementById('tutorial');
         const button = document.getElementById('add-link-btn');
@@ -579,30 +496,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         button.style.boxShadow = '0 0 15px 5px rgba(92, 121, 250, 0.45)';
 
-        // 1. Obter posições e tamanhos
         const rect = button.getBoundingClientRect();
         const rectCircle1 = circle1.getBoundingClientRect();
         const rectCircle2 = circle2.getBoundingClientRect();
 
-        // 2. Calcular o centro CORRETO do botão
         const buttonCenterX = rect.left + (rect.width / 2);
         const buttonCenterY = rect.top + (rect.height / 2);
 
-        // 3. Calcular a posição (top, left) para CADA círculo
-        //    para que seu centro se alinhe com o centro do botão.
-        // (Assumindo que os círculos usam 'position: fixed' ou 'absolute')
+        const viewportWidth = window.innerWidth
+        const viewportHeight = window.innerHeight
 
-        viewportWidth = window.innerWidth
-        viewportHeight = window.innerHeight
-
-        // Posição para o Círculo 1
         const circle1Bottom = (viewportHeight - buttonCenterY) - (rectCircle1.height / 2);
         const circle1Right = (viewportWidth - buttonCenterX) - (rectCircle1.width / 2);
-        // Posição para o Círculo 2
+
         const circle2Bottom = (viewportHeight - buttonCenterY) - (rectCircle2.height / 2);
         const circle2Right = (viewportWidth - buttonCenterX) - (rectCircle2.width / 2);
 
-        // 4. Aplicar os estilos usando 'top' e 'left'
         circle1.style.bottom = `${circle1Bottom}px`;
         circle1.style.right = `${circle1Right}px`;
         
@@ -630,7 +539,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // convert file to base64
     function convertToBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -648,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportLinksBtn = document.getElementById('export-links-btn');
     const importLinksBtn = document.getElementById('import-links-btn');
     const fileInput = document.getElementById('selectFiles');
-    const changeBGInput = document.getElementById('changeBGInput');
+    const changeBgInput = document.getElementById('change-bg-input');
     const resetBgBtn = document.getElementById('reset-bg-settings-btn');
     const closeNotificationBtn = document.getElementById('close-notification-btn');
     const displayContainer = document.getElementById('img-display-container');
@@ -659,6 +567,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputColGrid = document.getElementById('col');
     const inputRowGrid = document.getElementById('row');
     const resetLinksBtn = document.getElementById('reset-links-settings-btn');
+    const clearListBtn = document.getElementById('clear-list-btn');
 
     const openMenu = () => {
         hideOverlay();
@@ -699,13 +608,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const importLinksInput = () => {
-        files = fileInput.files;
+        const files = fileInput.files;
         console.log('Importing links...', files);
         if (files.length === 0) {
             return false;
         }
-
-        const blob = new Blob([files], {type:"application/json"});
 
         const fr = new FileReader();
 
@@ -729,22 +636,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const changeBgButton = () => {
-        changeBGInput.click();
+        changeBgInput.click();
     };
 
     function getIdArray() {
         return new Promise((resolve) => {
             chrome.storage.local.get(['idArray'], (result) => {
                 const idArray = result.idArray || [];
-                console.log(Date.now());
                 resolve(idArray);
             });
         });
     }
 
-    const changeBgInput = async () => {
+    const changeBg = async () => {
         console.log('Changing BG Image')
-        let imgBg = changeBGInput?.files;
+        let imgBg = changeBgInput?.files;
         if (!imgBg || imgBg.length === 0) return false;
 
         for (let i = 0; i < imgBg.length; i++) {
@@ -759,31 +665,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         await loadBackground();
 
-        changeBGInput.value = '';
-    }
-
-    async function addBackground(base64) {
-        const result = await chrome.storage.local.get(['idArray']);
-        let idArrayB = result.idArray || [];
-
-        const id = 'bg_' + idArrayB.length;
-        idArrayB.push(id);
-
-        await chrome.storage.local.set({ idArray: idArrayB });
-        await chrome.storage.local.set({ [id]: base64 });
-
-        addDisplayImage(id);
-
-        console.log("New background:", id);
-        return id;
+        changeBgInput.value = '';
     }
 
     function initSortableDisplay() {
         new Sortable(document.getElementById('img-display-container'), {
             animation: 150,
             ghostClass: 'ghost',
+            group: {
+                name: 'backgrounds-settings',
+                pull: false,
+                put: false
+            },
             onEnd: function (evt) {
-                    // salva alterações
                     console.log('getlinks ', getLinksFromDisplayArray());
                     chrome.storage.local.set({ idArray: getLinksFromDisplayArray() });
                 }
@@ -793,25 +687,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function getLinksFromDisplayArray() {
         const items = document.querySelectorAll('#img-display-container .div-display');
         return Array.from(items).map(item => item.id);
-    }
-
-    function getLinksFromMatrix() {
-        const links = [];
-        gridMatrix.forEach((rowArr, r) => {
-            rowArr.forEach((cellObj, c) => {
-                if (cellObj) {
-                    links.push({
-                        id: cellObj.id,
-                        name: cellObj.name,
-                        url: cellObj.url,
-                        customIcon: cellObj.customIcon || null,
-                        row: r,
-                        col: c
-                    });
-                }
-            });
-        });
-        return links;
     }
 
     async function loadImageDisplay(idArray) {
@@ -825,7 +700,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function addDisplayImage(idArray) {
-        console.log('Adding Image: ', idArray)
         const imgSrc = await getBackground(idArray);
         
         const divElem = document.createElement('div');
@@ -853,23 +727,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function removeDisplayImage(id) {
-        divElem = document.getElementById(id);
+        const divElem = document.getElementById(id);
         divElem.remove();
     }
 
     const resetBg = async () => {
         if (confirm('Are you sure you want to reset the backgrounds? This action cannot be undone.')) {
-            arrayId = await getIdArray();
-            for (let i; i < arrayId.length; i++) {
-                const key = arrayId[i];
-                chrome.storage.local.set({[key]: null});
-            }
-            chrome.storage.local.set({idArray: null});
-            console.log('Background Reset');
-            displayContainer.innerHTML = '';
+            resetBack();
             showNotification("Success. Background reseted successfully");
-            loadBackground();
         }
+    }
+
+    async function resetBack() {
+        await clearBgList();
+        displayContainer.innerHTML = '';
+        await loadDefaultBackgrounds();
+        loadBackground();
     }
 
     function showNotification(message) {
@@ -896,8 +769,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await chrome.storage.local.set({ idArray: idArrayB });
         chrome.storage.local.remove(id);
 
-        // atualiza UI
-        loadImageDisplay(idArrayB);
         loadBackground();
         removeDisplayImage(id);
     };
@@ -944,8 +815,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log('Saving grid:', grid);
         chrome.storage.sync.set({ grid });
+        const gridContainer = document.querySelector('.grid-container');
+        gridContainer.innerHTML = '';
+        await loadLinks();
+        initSortable();
     }
 
+    async function clearBgList() {
+        const arrayId = await getIdArray();
+        for (let i = 0; i < arrayId.length; i++) {
+            const key = arrayId[i];
+            chrome.storage.local.remove(key);
+        }
+        chrome.storage.local.set({idArray: []});
+        console.log('Background Reset');
+    }
+    
+    const clearBg = async () => {
+        await clearBgList();
+        await loadBackground();
+        showNotification('Success. Background list cleared successfully');
+        displayContainer.innerHTML = '';
+    }
+
+    init();
     
     // Event Listeners
     openBtn.addEventListener('click', openMenu);
@@ -953,7 +846,7 @@ document.addEventListener('DOMContentLoaded', () => {
     backdrop.addEventListener('click', closeMenu); // Fecha ao clicar fora
     exportLinksBtn.addEventListener('click', exportLinks);
     changeBgBtn.addEventListener('click', changeBgButton);
-    changeBGInput.addEventListener('change', changeBgInput)
+    changeBgInput.addEventListener('change', changeBg)
     importLinksBtn.addEventListener('click', importLinks);
     fileInput.addEventListener('change', importLinksInput);
     resetBgBtn.addEventListener('click', resetBg);
@@ -965,5 +858,6 @@ document.addEventListener('DOMContentLoaded', () => {
     inputColGrid.addEventListener('change', () => inputGrid(inputColGrid));
     inputRowGrid.addEventListener('change', () => inputGrid(inputRowGrid));
     resetLinksBtn.addEventListener('click', resetLinks);
+    clearListBtn.addEventListener('click', clearBg);
 
 });
