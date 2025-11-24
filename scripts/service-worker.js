@@ -54,7 +54,7 @@ function initialize() {
             showTutorial: false,
             defaultBGs: true,
             idArray: [],
-            linkSize: 11
+            linkSize: 15
         }, () => {
             console.log('Dados armazenados com sucesso no sync.');
 

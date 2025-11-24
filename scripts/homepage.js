@@ -767,8 +767,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const linkSize = () => {
         const linkSize = linkSizeInput.value;
-        const sizeLink = linkSize * 0.63;
-        const sizeText = linkSize * 0.09;
+        const sizeLink = linkSize * 0.47;
+        const sizeText = linkSize * 0.07;
 
         chrome.storage.sync.set({linkSize: linkSize});
 
@@ -783,8 +783,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         linkSizeInput.value = linkSize;
 
-        const sizeLink = linkSize * 0.63;
-        const sizeText = linkSize * 0.09;
+        const sizeLink = linkSize * 0.47;
+        const sizeText = linkSize * 0.07;
         
         document.documentElement.style.setProperty("--link-size", sizeLink + "rem");
         document.documentElement.style.setProperty("--text-link-size", sizeText + "em");
