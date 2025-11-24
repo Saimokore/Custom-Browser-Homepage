@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Custom Browser Homepage",
-  "version": "2.0",
+  "version": "3.0",
   "description": "Replaces the browser's homepage with a custom page",
   
   "chrome_url_overrides": {

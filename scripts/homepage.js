@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const editBtn           =   document.getElementById('edit-btn');
     const gridContainer     =   document.querySelector('.grid-container');
 
-    let GRID_ROWS = 4;
     let GRID_COLS = 8;
     let gridArray = [];
 
@@ -103,12 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
             chrome.storage.sync.get(['grid', 'links'], (result) => {
                 if (result.grid) {
                     console.log('Grid config found:', result.grid);
-                    GRID_ROWS = result.grid.row;
                     GRID_COLS = result.grid.col;
                 } else {
                     console.log('No grid config found. Setting default 4x8.');
-                    chrome.storage.sync.set({ grid: { row: 4, col: 8 } });
-                    GRID_ROWS = 4;
+                    chrome.storage.sync.set({ grid: { col: 8 } });
                     GRID_COLS = 8;
                 }
                 gridArray = result.links;
@@ -124,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!gridContainer) return;
         
-        gridContainer.style.width = `${GRID_COLS * 110 + 40}px`;
+        gridContainer.style.width = `${GRID_COLS * 118}px`;
         gridContainer.innerHTML = '';
     }
 
@@ -140,7 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
         newLink.dataset.name = name;
         newLink.dataset.id = id || generateId();
         if (customIcon) newLink.dataset.customIcon = customIcon;
-
+        
+        const newLinkSpan = document.createElement('span');
+        newLinkSpan.className = 'link-text';
+        newLinkSpan.innerText = name;
         // icon + text...
         const icon = document.createElement('img');
         icon.className = 'link-icon';
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
         icon.onerror = () => { icon.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48"><rect width="100%" height="100%" fill="#444"/><text x="50%" y="55%" font-size="20" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif">?</text></svg>'; };
 
         newLink.appendChild(icon);
-        newLink.appendChild(document.createTextNode(name));
+        newLink.appendChild(newLinkSpan);
 
         // Context menu handler always uses closest cell (evita dados stale)
         newLink.addEventListener('contextmenu', (e) => {
@@ -183,16 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
         await chrome.storage.sync.set({links: gridArray});
         console.log('GridArray: ', gridArray)
     }
-
-    // for (let row = 0; row < GRID_ROWS; row++) {
-    //         for (let col = 0; col < GRID_COLS; col++) {
-    //             const cell = document.createElement('div');
-    //             cell.className = 'grid-cell';
-    //             cell.dataset.row = row;
-    //             cell.dataset.col = col;
-    //             gridContainer.appendChild(cell);
-    //         }
-    //     }
 
     function generateId() {
         return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
@@ -495,10 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayContainer = document.getElementById('img-display-container');
     const btnColMaxGrid = document.getElementById('max-col');
     const btnColMinGrid = document.getElementById('min-col');
-    const btnRowMaxGrid = document.getElementById('max-row');
-    const btnRowMinGrid = document.getElementById('min-row');
     const inputColGrid = document.getElementById('col');
-    const inputRowGrid = document.getElementById('row');
     const resetLinksBtn = document.getElementById('reset-links-settings-btn');
     const clearListBtn = document.getElementById('clear-list-btn');
 
@@ -596,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification("Success. Background picture changed successfully");
         console.log('idar: ', idArray)
 
-        await loadBackground();
+        if (idArray.length == 1) await loadBackground();
 
         changeBgInput.value = '';
     }
@@ -702,16 +689,13 @@ document.addEventListener('DOMContentLoaded', () => {
         await chrome.storage.local.set({ idArray: idArrayB });
         chrome.storage.local.remove(id);
 
-        loadBackground();
         removeDisplayImage(id);
     };
 
-    setGridDefaults();
 
     function setGridDefaults() {
         chrome.storage.sync.get(['grid'], (result) => {
             inputColGrid.value = result.grid.col || 8;
-            inputRowGrid.value = result.grid.row || 4;
         });
     }
     
@@ -722,29 +706,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function inputGrid(input) {
         const value = clamp(Number(input.value));
         input.value = value;
-        saveGrid(input.id, value);
+        saveGrid(value);
     }
 
     function maxGrid(input) {
         const value = clamp(Number(input.value) + 1);
         input.value = value;
-        saveGrid(input.id, value);
+        saveGrid(value);
     }
 
     function minGrid(input) {
         const value = clamp(Number(input.value) - 1);
         input.value = value;
-        saveGrid(input.id, value);
+        saveGrid(value);
     }
 
-    async function saveGrid(rowOrCol, value) {
+    async function saveGrid(value) {
         const stored = await chrome.storage.sync.get('grid');
 
         // Garantir que grid exista
-        const grid = stored.grid || { row: 4, col: 8 };
+        const grid = stored.grid || { col: 8 };
 
-        if (rowOrCol === 'row') grid.row = value;
-        if (rowOrCol === 'col') grid.col = value;
+        grid.col = value;
 
         console.log('Saving grid:', grid);
         chrome.storage.sync.set({ grid });
@@ -759,7 +742,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const key = arrayId[i];
             chrome.storage.local.remove(key);
         }
-        chrome.storage.local.set({idArray: []});
+        await chrome.storage.local.set({idArray: []});
+        await chrome.storage.sync.set({ lastImageIndex: 0 });
         console.log('Background Reset');
     }
     
@@ -785,10 +769,7 @@ document.addEventListener('DOMContentLoaded', () => {
     closeNotificationBtn.addEventListener('click', closeNotification);
     btnColMaxGrid.addEventListener('click', () => maxGrid(inputColGrid));
     btnColMinGrid.addEventListener('click', () => minGrid(inputColGrid));
-    btnRowMaxGrid.addEventListener('click', () => maxGrid(inputRowGrid));
-    btnRowMinGrid.addEventListener('click', () => minGrid(inputRowGrid));
     inputColGrid.addEventListener('change', () => inputGrid(inputColGrid));
-    inputRowGrid.addEventListener('change', () => inputGrid(inputRowGrid));
     resetLinksBtn.addEventListener('click', resetLinks);
     clearListBtn.addEventListener('click', clearBg);
 

@@ -296,21 +296,36 @@ a {
 .quick-link {
     display: flex;
     flex-direction: column;
-    text-align: center;
-    padding: 10px;
-    box-sizing: border-box;             /* evita alterações de tamanho ao mudar borda */
-    border: 1px solid transparent;       /* borda transparente por padrão (previne jump layout) */
-    gap: 10px;
-    aspect-ratio: 1;
     justify-content: center;
     align-items: center;
+    gap: 10px;
+
+    max-width: 110px;
     min-height: 110px;
-    backdrop-filter: blur(6px);
+    aspect-ratio: 1;
+
+    padding: 10px;
+    box-sizing: border-box;
+
+    border: 1px solid #6e6e6e6c;
     border-radius: 12px;
-    border-color: #6e6e6e6c;
     background: #3333336c;
     backdrop-filter: blur(6px);
-    transition: opacity 0.25s ease;
+
+    text-decoration: none;
+    color: inherit;
+}
+
+.quick-link .link-text {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #fefefe;
+
+    /* força cortar no meio da palavra */
+    word-break: break-all;
 }
 
 .tutorial-overlay {
