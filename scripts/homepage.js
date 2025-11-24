@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function init() {
         setGridDefaults();
+        loadPosition()
+        loadFullWidth()
         const result = await chrome.storage.sync.get('defaultBGs');
         
         if (result.defaultBGs) {
@@ -15,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             loadBackground();
         }
-
+        
         await loadLinks();
         initSortable();
     }
@@ -118,10 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Creates the grid structure
     async function createGrid() {
         await gridConfiguration();
+        const linkSize = await getLinkSize();
         
         if (!gridContainer) return;
         
-        gridContainer.style.width = `${GRID_COLS * 118}px`;
+        gridContainer.style.width = `${GRID_COLS * linkSize}em`;
         gridContainer.innerHTML = '';
     }
 
@@ -164,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Carrega e renderiza links
     async function loadLinks() {
         await createGrid(); // Create grid first
+        setLinkSize();
 
         chrome.storage.sync.get(['links'], (result) => {
             const links = result.links || [];
@@ -488,6 +492,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputColGrid = document.getElementById('col');
     const resetLinksBtn = document.getElementById('reset-links-settings-btn');
     const clearListBtn = document.getElementById('clear-list-btn');
+    const linkSizeInput = document.getElementById('link-size-input');
+    const widthCheckbox = document.getElementById('width-checkbox');
 
     const openMenu = () => {
         hideOverlay();
@@ -583,7 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showNotification("Success. Background picture changed successfully");
         console.log('idar: ', idArray)
 
-        if (idArray.length == 1) await loadBackground();
+        if (idArray.length === 1) await loadBackground();
 
         changeBgInput.value = '';
     }
@@ -611,7 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadImageDisplay(idArray) {
         console.log('LoadImageDisplay, idArray: ', idArray)
-        if (displayContainer.childElementCount == 0) {
+        if (displayContainer.childElementCount === 0) {
             for (let i = 0; i < idArray.length; i++) {
                 await addDisplayImage(idArray[i]);
             }
@@ -695,7 +701,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function setGridDefaults() {
         chrome.storage.sync.get(['grid'], (result) => {
-            inputColGrid.value = result.grid.col || 8;
+            if (result.grid) {
+                inputColGrid.value = result.grid.col || 8;
+            } else {
+                chrome.storage.sync.set({grid: {col: 8}});
+                inputColGrid.value = 8;
+            }
         });
     }
     
@@ -754,6 +765,152 @@ document.addEventListener('DOMContentLoaded', () => {
         displayContainer.innerHTML = '';
     }
 
+    const linkSize = () => {
+        const linkSize = linkSizeInput.value;
+        const sizeLink = linkSize * 0.63;
+        const sizeText = linkSize * 0.09;
+
+        chrome.storage.sync.set({linkSize: linkSize});
+
+        document.documentElement.style.setProperty("--link-size", sizeLink + "rem");
+        document.documentElement.style.setProperty("--text-link-size", sizeText + "em");
+    }
+    
+    async function setLinkSize() {
+        const linkSize = await getLinkSize();
+
+        console.log('Link size: ', linkSize);
+
+        linkSizeInput.value = linkSize;
+
+        const sizeLink = linkSize * 0.63;
+        const sizeText = linkSize * 0.09;
+        
+        document.documentElement.style.setProperty("--link-size", sizeLink + "rem");
+        document.documentElement.style.setProperty("--text-link-size", sizeText + "em");
+    }
+
+    async function getLinkSize() {
+        const result = await chrome.storage.sync.get('linkSize');
+        return result.linkSize || 7;
+    }
+
+    document.querySelectorAll(".position-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+
+            console.log("Clicked:", btn.dataset.position);
+
+            switch (btn.dataset.position) {
+
+                case "top-left":
+                    console.log("Position: top-left");
+                    document.documentElement.style.setProperty("--link-container-vertical", "flex-start");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "flex-start");
+                    break;
+
+                case "top-center":
+                    console.log("Position: top-center");
+                    document.documentElement.style.setProperty("--link-container-vertical", "flex-start");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "center");
+                    break;
+
+                case "top-right":
+                    console.log("Position: top-right");
+                    document.documentElement.style.setProperty("--link-container-vertical", "flex-start");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "flex-end");
+                    break;
+
+                case "left":
+                    console.log("Position: middle-left");
+                    document.documentElement.style.setProperty("--link-container-vertical", "center");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "flex-start");
+                    break;
+
+                case "center":
+                    console.log("Position: middle-center");
+                    document.documentElement.style.setProperty("--link-container-vertical", "center");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "center");
+                    break;
+
+                case "right":
+                    console.log("Position: middle-right");
+                    document.documentElement.style.setProperty("--link-container-vertical", "center");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "flex-end");
+                    break;
+
+                case "bottom-left":
+                    console.log("Position: bottom-left");
+                    document.documentElement.style.setProperty("--link-container-vertical", "flex-end");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "flex-start");
+                    break;
+
+                case "bottom-center":
+                    console.log("Position: bottom-center");
+                    document.documentElement.style.setProperty("--link-container-vertical", "flex-end");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "center");
+                    break;
+
+                case "bottom-right":
+                    console.log("Position: bottom-right");
+                    document.documentElement.style.setProperty("--link-container-vertical", "flex-end");
+                    document.documentElement.style.setProperty("--link-container-horizontal", "flex-end");
+                    break;    
+
+                default:
+                    console.warn("Unknown position:", btn.dataset.position);
+                    break;
+            }
+            setPosition();
+        });
+    });
+
+    function setPosition() {
+        const vertical = document.documentElement.style.getPropertyValue("--link-container-vertical");
+        const horizontal = document.documentElement.style.getPropertyValue("--link-container-horizontal");
+
+        chrome.storage.sync.set({linkPosition: {ver: vertical, hor: horizontal}});
+    }
+
+    async function getPosition() {
+        const result = await chrome.storage.sync.get('linkPosition');
+        return result.linkPosition || {ver: "flex-start", hor: "flex-start"}
+    }
+
+    async function loadPosition() {
+        const position = await getPosition();
+        document.documentElement.style.setProperty("--link-container-vertical", position.ver);
+        document.documentElement.style.setProperty("--link-container-horizontal", position.hor);
+    }
+
+    const fullWidth = () => {
+        console.log('Set Full Width');
+        if (widthCheckbox.checked) {
+            document.documentElement.style.setProperty("--box-width", "100%");
+        } else {
+            document.documentElement.style.setProperty("--box-width", "1920px");
+        }
+        setFullWidth();
+    }
+
+    function setFullWidth() {
+        const fullWidth = document.documentElement.style.getPropertyValue("--box-width");
+        const isFullWidth = fullWidth === "100%";
+
+        chrome.storage.sync.set({fullWidth: isFullWidth});
+    }
+
+    async function getFullWidth() {
+        const result = await chrome.storage.sync.get('fullWidth');
+        return result.fullWidth || true;
+    }
+
+    async function loadFullWidth() {
+        const isFullWidth = await getFullWidth();
+        const fullWidth = isFullWidth ? "100%" : "1920px"
+        widthCheckbox.checked = isFullWidth;
+        document.documentElement.style.setProperty("--box-width", fullWidth);
+    }
+
     init();
     
     // Event Listeners
@@ -772,5 +929,7 @@ document.addEventListener('DOMContentLoaded', () => {
     inputColGrid.addEventListener('change', () => inputGrid(inputColGrid));
     resetLinksBtn.addEventListener('click', resetLinks);
     clearListBtn.addEventListener('click', clearBg);
+    linkSizeInput.addEventListener('input', linkSize);
+    widthCheckbox.addEventListener('change', fullWidth);
 
 });

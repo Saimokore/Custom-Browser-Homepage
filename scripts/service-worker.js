@@ -53,7 +53,8 @@ function initialize() {
             links: result.links,
             showTutorial: false,
             defaultBGs: true,
-            idArray: []
+            idArray: [],
+            linkSize: 11
         }, () => {
             console.log('Dados armazenados com sucesso no sync.');
 
@@ -70,7 +71,8 @@ function initialize() {
         chrome.storage.sync.set({ 
           links: links,
           showTutorial: true,
-          defaultBGs: true
+          defaultBGs: true,
+          linkSize: 11
         }, () => {
           console.log('Default data saved.');
           chrome.tabs.create({

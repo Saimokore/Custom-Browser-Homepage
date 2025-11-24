@@ -10,6 +10,17 @@ body, html {
     background-color: #202020;
 }
 
+
+:root {
+    --link-size: 7rem;   /* default */
+    --text-link-size: 1em;
+
+    --link-container-vertical: flex-start;
+    --link-container-horizontal: flex-start;
+    --box-width: 1920px;
+}
+
+
 .overlay-container {
     display: flex;
     align-content: center;
@@ -42,7 +53,10 @@ body, html {
 
 .boxed {
     width: 100%;
-    max-width: 1900px;
+    max-width: var(--box-width);
+    display: flex;
+    align-content: flex-start;
+    justify-content: flex-end;
 }
 
 .background-overlay {
@@ -60,7 +74,7 @@ body, html {
     row-gap: 40px;
     padding: 2rem;
     border-radius: 12px;
-    width: 70%;
+    width: 100%;
 }
 
 .hidden {
@@ -71,9 +85,8 @@ body, html {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
-    align-items: center;
+    align-content: var(--link-container-horizontal);
     gap: 20px;
-    width: fit-content;
 }
 
 .fab {
@@ -247,6 +260,7 @@ input[type="file"] {
 .grid-container {
     display: flex;
     flex-wrap: wrap;
+    justify-content: var(--link-container-horizontal);
     gap: 10px;
     padding: 20px;
     max-width: 1400px;
@@ -298,35 +312,40 @@ a {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 10px;
+    gap: 10%;
 
-    max-width: 110px;
-    min-height: 110px;
+    width: var(--link-size, 7rem);
     aspect-ratio: 1;
 
-    padding: 10px;
-    box-sizing: border-box;
-
+    padding: 0.8em;
     border: 1px solid #6e6e6e6c;
-    border-radius: 12px;
+    border-radius: 0.75rem;
     background: #3333336c;
     backdrop-filter: blur(6px);
 
     text-decoration: none;
     color: inherit;
+
+    box-sizing: border-box;
 }
 
+/* Icon scales based on container size */
+.quick-link .link-icon {
+    width: 58%;
+    height: auto;
+}
+
+/* Text scales with container size */
 .quick-link .link-text {
-    display: block;
-    max-width: 100%;
+    font-size: var(--text-link-size);
+    text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     color: #fefefe;
-
-    /* força cortar no meio da palavra */
-    word-break: break-all;
 }
+
+
 
 .tutorial-overlay {
     display: none; /* Escondido por padrão */
@@ -648,4 +667,21 @@ input[type=number]::-webkit-inner-spin-button {
 
 .change-btn {
     width: 55%;
+}
+
+.position-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    max-width: 100px;
+}
+
+.links-container {
+    align-content: flex-end;
+    justify-content: var(--link-container-vertical);
+}
+
+.checkbox {
+    width: 30px;
+    height: 30px;
 }

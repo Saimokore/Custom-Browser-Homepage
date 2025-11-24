@@ -14,7 +14,7 @@
         <div class="boxed">
             <script src="scripts\Sortable.min.js"></script>
 
-            <div class="container">
+            <div class="links-container container">
                 <div class="links">
                     <div id="grid-container" class="grid-container">
                         <!-- Grid cells will be created by JavaScript -->
@@ -114,25 +114,70 @@
                             </small>
                         </div>
 
-                        <div class="settings-section" >
-                            <h3>Columns</h3>
-                            <div style="display: flex; gap: 20px;">
-                                <div class="form-group settings-form">
-                                    <div style="display: flex;">
-                                        <button id="min-col" class="grid-button">
-                                            <img src="icons\svg\arrow-left-svgrepo-com.svg" alt="" class="arrow-icon">
-                                        </button>
-                                        <input type="number" min="0" max="15" id="col" class=" "/>
-                                        <button id="max-col" class="grid-button">
-                                            <img src="icons\svg\arrow-right-svgrepo-com.svg" alt="" class="arrow-icon">
-                                        </button>
+                        <div style="display: flex; gap: 20px;">
+                            <div class="settings-section" >
+                                <h3>Columns</h3>
+                                <div style="display: flex; gap: 20px;">
+                                    <div class="form-group settings-form">
+                                        <div style="display: flex;">
+                                            <button id="min-col" class="grid-button">
+                                                <img src="icons\svg\arrow-left-svgrepo-com.svg" alt="" class="arrow-icon">
+                                            </button>
+                                            <input type="number" min="0" max="15" id="col" class=" "/>
+                                            <button id="max-col" class="grid-button">
+                                                <img src="icons\svg\arrow-right-svgrepo-com.svg" alt="" class="arrow-icon">
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <div class="settings-section">
+                                <h3>Full Width</h3>
+                                <input type="checkbox" id="width-checkbox" class="checkbox file-input">
+                            </div>                            
                         </div>
                         
                     </div>
                     <div class="settings-right settings-side">
+                        <div style="display: flex; gap: 30px;">
+                            <div class="settings-section" >
+                                <h3>Website's Links Position</h3>
+                                <div class="position-grid">
+                                    <button id="top-left-btn" data-position="top-left" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\top-left.svg" alt="" class="icons">
+                                    </button>
+                                    <button id="top-center-btn" data-position="top-center" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\top-center.svg" alt="" class="icons">
+                                    </button>
+                                    <button id="top-right-btn" data-position="top-right" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\top-right.svg" alt="" class="icons">
+                                    </button>
+                                    <button id="left-btn" data-position="left" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\left.svg" alt="" class="icons">
+                                    </button>
+                                    <button id="center-btn" data-position="center" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\center.svg" alt="" class="icons">
+                                    </button>
+                                    <button id="right-btn" data-position="right" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\right.svg" alt="" class="icons">
+                                    </button>
+                                    <button id="bottom-left-btn" data-position="bottom-left" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\bottom-left.svg" alt="" class="icons">
+                                    </button>
+                                    <button id="bottom-center-btn" data-position="bottom-center" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\bottom-center.svg" alt="" class="icons">
+                                    </button>
+                                    <button id="bottom-right-btn" data-position="bottom-right" class="position-btn context-menu-btn">
+                                    <img src="icons\svg\align\bottom-right.svg" alt="" class="icons">
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="settings-section">
+                                <h3>Website's Links Size</h3>
+                                <input type="range" id="link-size-input" min="5" max="22">
+                            </div>
+                        </div>
+
                         <div class="settings-section" >
                             <h3>Import/Export Website's Links</h3>
                             <input value="Import" type="file" id="selectFiles" accept=".json" class="hidden file-input"/>
