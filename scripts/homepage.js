@@ -121,10 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
     async function createGrid() {
         await gridConfiguration();
         const linkSize = await getLinkSize();
+        const sizeLink = linkSize * 0.47;
         
         if (!gridContainer) return;
+
+        const LINK_SIZE = Math.floor(sizeLink * 16);
         
-        gridContainer.style.width = `${GRID_COLS * linkSize}em`;
+        gridContainer.style.width = `${(GRID_COLS * LINK_SIZE + (GRID_COLS * 10))}px`;
         gridContainer.innerHTML = '';
     }
 
@@ -788,6 +791,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.documentElement.style.setProperty("--link-size", sizeLink + "rem");
         document.documentElement.style.setProperty("--text-link-size", sizeText + "em");
+
+        gridContainer.style.width = `${(GRID_COLS * LINK_SIZE + (GRID_COLS * 12))}px`;
     }
 
     async function getLinkSize() {
