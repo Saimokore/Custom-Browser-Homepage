@@ -162,8 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             showContextMenu(e, newLink);
         });
-
-        console.log('rendered link ', newLink)
         return newLink;
     }
 
@@ -178,7 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
             links.forEach(link => {
                 const linkEl = renderLink(link.name, link.url, link.customIcon, link.id);
                 gridContainer.appendChild(linkEl);
-                console.log('LinkEl: ', link)
             });
         });
     }
@@ -768,15 +765,21 @@ document.addEventListener('DOMContentLoaded', () => {
         displayContainer.innerHTML = '';
     }
 
-    const linkSize = () => {
+    const linkSize = async () => {
         const linkSize = linkSizeInput.value;
         const sizeLink = linkSize * 0.47;
         const sizeText = linkSize * 0.07;
 
-        chrome.storage.sync.set({linkSize: linkSize});
+        await chrome.storage.sync.set({linkSize: linkSize});
 
         document.documentElement.style.setProperty("--link-size", sizeLink + "rem");
         document.documentElement.style.setProperty("--text-link-size", sizeText + "em");
+        
+        const result = await chrome.storage.sync.get('grid');
+
+        GRID_COLS = result.grid.col || 8;
+        const LINK_SIZE = Math.ceil(sizeLink) * 16;
+        gridContainer.style.width = `${(GRID_COLS * LINK_SIZE + (GRID_COLS * 10))}px`;
     }
     
     async function setLinkSize() {
@@ -791,8 +794,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         document.documentElement.style.setProperty("--link-size", sizeLink + "rem");
         document.documentElement.style.setProperty("--text-link-size", sizeText + "em");
-
-        gridContainer.style.width = `${(GRID_COLS * LINK_SIZE + (GRID_COLS * 12))}px`;
     }
 
     async function getLinkSize() {
@@ -801,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll(".position-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
 
             console.log("Clicked:", btn.dataset.position);
 
@@ -869,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    function setPosition() {
+    async function setPosition() {
         const vertical = document.documentElement.style.getPropertyValue("--link-container-vertical");
         const horizontal = document.documentElement.style.getPropertyValue("--link-container-horizontal");
 
